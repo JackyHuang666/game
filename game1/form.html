@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; }
+[hidden] { display: none !important; }
+</style>
+<title>靜心小園</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap">
+<style>
+/* Layout: 單欄、置中、一次只做一件事。大字、大按鈕、沒有失敗與倒數壓力。 */
+:root {
+  --bg: #EEF4F1;
+  --surface: #FFFFFF;
+  --tint: #E3EEE9;
+  --fg: #16302B;
+  --muted: #43605A;
+  --line: #B9CFC7;
+  --accent: #1F6F5C;
+  --on-accent: #FFFFFF;
+  --bloom: #C94A75;
+  --sky: #DCEBF3;
+  --cloud: #FFFFFF;
+  --lantern: #E8A93B;
+  --lantern-off: #C9D6D1;
+  --font-display: "Noto Serif TC", "Songti TC", "PMingLiU", serif;
+  --font-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  font-size: 22px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F1D1A; --surface: #172823; --tint: #1D342E; --fg: #E9F3EF; --muted: #A9C4BC;
+    --line: #2F4D45; --accent: #6FD0B5; --on-accent: #08241D; --bloom: #F28CAE;
+    --sky: #1B3243; --cloud: #2C4A5E; --lantern: #F2B84B; --lantern-off: #35504A;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F1D1A; --surface: #172823; --tint: #1D342E; --fg: #E9F3EF; --muted: #A9C4BC;
+  --line: #2F4D45; --accent: #6FD0B5; --on-accent: #08241D; --bloom: #F28CAE;
+  --sky: #1B3243; --cloud: #2C4A5E; --lantern: #F2B84B; --lantern-off: #35504A;
+  color-scheme: dark;
+}
+:root[data-size="1"] { font-size: 26px; }
+:root[data-size="2"] { font-size: 30px; }
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.7;
+  padding-block: 20px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 40rem; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+h1, h2 { font-family: var(--font-display); font-weight: 700; line-height: 1.3; margin: 0; text-wrap: balance; }
+h1 { font-size: 1.7rem; }
+h2 { font-size: 1.5rem; }
+h2:focus { outline: none; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+
+button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
+:focus-visible { outline: 4px solid var(--accent); outline-offset: 3px; }
+
+/* top bar */
+.bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.brand { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; letter-spacing: .08em; }
+.size-btn {
+  min-height: 52px; padding: 0 18px; border-radius: 999px;
+  border: 2px solid var(--line); background: var(--surface); font-weight: 500;
+}
+.steps { display: flex; gap: 8px; list-style: none; margin: 0; padding: 0; }
+.steps li {
+  flex: 1; min-width: 0; text-align: center; padding: 8px 4px;
+  border-radius: 10px; border: 2px solid var(--line);
+  font-size: .8rem; font-weight: 500; color: var(--muted); background: transparent;
+}
+.steps li[aria-current="step"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.steps li.done { background: var(--tint); border-color: var(--accent); color: var(--fg); }
+.steps li.done::before { content: "✓ "; }
+
+/* buttons */
+.btn {
+  min-height: 68px; padding: 0 34px; border-radius: 999px; border: 0;
+  background: var(--accent); color: var(--on-accent); font-weight: 700; font-size: 1.1rem;
+  align-self: center; max-width: 100%;
+}
+/* 主要按鈕固定在畫面底部，手機上不用滑到最下面才找得到 */
+.btn:not(.ghost) { position: sticky; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); box-shadow: 0 8px 20px rgba(0, 0, 0, .28); z-index: 3; }
+.btn.ghost { background: transparent; color: var(--fg); border: 2px solid var(--line); font-weight: 500; }
+.btn[disabled] { opacity: .45; cursor: default; }
+.row { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+
+/* panels */
+.panel { background: var(--surface); border: 2px solid var(--line); border-radius: 18px; padding: 24px 20px; display: flex; flex-direction: column; gap: 18px; }
+.lead { font-size: 1.1rem; }
+.fact { background: var(--tint); border-radius: 14px; padding: 18px 18px 20px; display: flex; flex-direction: column; gap: 8px; }
+.fact .tag { font-size: .8rem; font-weight: 700; letter-spacing: .12em; color: var(--accent); }
+.preview { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+.preview li { display: grid; grid-template-columns: 3rem 1fr; gap: 14px; align-items: center; }
+.preview .num { width: 3rem; height: 3rem; border-radius: 50%; background: var(--tint); display: grid; place-items: center; font-family: var(--font-display); font-weight: 700; }
+
+/* level 1 */
+.stage { display: grid; place-items: center; padding: 8px 0; }
+.flower { width: min(62vw, 15rem); aspect-ratio: 1; transform: scale(.5); will-change: transform; }
+.flower svg { width: 100%; height: 100%; display: block; }
+.phase { text-align: center; font-family: var(--font-display); font-weight: 700; font-size: 1.6rem; min-height: 2.6rem; }
+.dots { display: flex; gap: 12px; justify-content: center; align-items: center; }
+.dots span { width: 22px; height: 22px; border-radius: 50%; border: 3px solid var(--bloom); }
+.dots span.on { background: var(--bloom); }
+.count { text-align: center; color: var(--muted); }
+
+/* level 2 */
+.sky { background: var(--sky); border-radius: 18px; padding: 3rem 14px 30px; display: flex; flex-direction: column; gap: 28px; position: relative; overflow: hidden; min-height: 22rem; }
+.sun { position: absolute; top: 10px; right: 14px; width: 4.2rem; height: 4.2rem; opacity: 0; transition: opacity 2s; pointer-events: none; }
+.sky.clear .sun { opacity: 1; }
+.sky .done-msg { position: absolute; inset: auto 0 18px 0; text-align: center; font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; opacity: 0; transition: opacity 2s .6s; }
+.sky.clear .done-msg { opacity: 1; }
+.cloud {
+  position: relative; border: 0; background: var(--cloud); color: var(--fg);
+  min-height: 3.8rem; padding: 10px 22px; border-radius: 60px; width: 86%; font-weight: 500; font-size: .95rem; text-align: center;
+  box-shadow: 0 4px 0 rgba(22, 48, 43, .12);
+  animation: bob 6s ease-in-out infinite;
+  transition: opacity 1.8s ease, transform 1.8s ease;
+}
+.cloud::before, .cloud::after { content: ""; position: absolute; background: var(--cloud); border-radius: 50%; z-index: -1; }
+.cloud::before { width: 3rem; height: 3rem; top: -1.3rem; left: 16%; }
+.cloud::after { width: 3.6rem; height: 3.6rem; top: -1.6rem; right: 18%; }
+.cloud:nth-child(odd) { align-self: flex-start; }
+.cloud:nth-child(even) { align-self: flex-end; animation-delay: -3s; }
+.cloud.gone { opacity: 0; transform: translateY(-70px); pointer-events: none; }
+.cloud.hidden { visibility: hidden; }
+@keyframes bob { 0%, 100% { translate: 0 0; } 50% { translate: 8px -6px; } }
+
+/* level 3 */
+.cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.card {
+  min-height: 4.2rem; padding: 10px; font-size: .9rem; overflow-wrap: anywhere; border-radius: 14px; border: 2px solid var(--line);
+  background: var(--surface); font-weight: 500; text-align: center;
+}
+.card[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 700; }
+.card[disabled] { opacity: .45; cursor: default; }
+.lanterns { display: flex; justify-content: space-around; gap: 8px; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 2; background: var(--surface); padding: 8px 0; border-bottom: 2px solid var(--line); }
+.lantern { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 30%; min-width: 0; text-align: center; font-size: .75rem; line-height: 1.4; color: var(--muted); }
+.lantern svg { width: 2.4rem; height: auto; }
+.count.stick { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 2; background: var(--surface); padding: 6px 0; }
+.lantern .glow { fill: var(--lantern-off); transition: fill .8s; }
+.lantern.lit .glow { fill: var(--lantern); }
+.lantern.lit { color: var(--fg); font-weight: 500; }
+.lantern b { font-weight: inherit; overflow-wrap: anywhere; }
+
+/* finish */
+.garden { width: 100%; height: auto; display: block; border-radius: 18px; }
+.benefits { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.benefits li { display: grid; grid-template-columns: 2.4rem 1fr; gap: 14px; align-items: start; }
+.benefits svg { width: 2.4rem; height: 2.4rem; }
+.benefits strong { display: block; }
+.recipe { margin: 0; padding-left: 1.4em; display: flex; flex-direction: column; gap: 6px; }
+.small { font-size: .8rem; color: var(--muted); }
+
+@media (max-width: 480px) {
+  .panel { padding: 20px 14px; }
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.3rem; }
+  .btn { padding: 0 24px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cloud { animation: none; }
+  .cloud, .sun, .sky .done-msg, .lantern .glow { transition-duration: .01s; }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="bar">
+    <div class="brand">靜心小園</div>
+    <button class="size-btn" id="sizeBtn" type="button" aria-label="切換字體大小">字體：標準</button>
+  </div>
+
+  <ol class="steps" id="steps" aria-label="遊戲進度">
+    <li data-s="1">1 呼吸</li>
+    <li data-s="2">2 放下</li>
+    <li data-s="3">3 感恩</li>
+  </ol>
+
+  <!-- 開場 -->
+  <section id="intro" class="panel">
+    <h1 tabindex="-1">每天幾分鐘，讓心慢下來</h1>
+    <p class="lead">跟著三個小遊戲，親身感受冥想的好處。沒有輸贏，沒有時間限制，累了隨時可以停下來。</p>
+    <ul class="preview">
+      <li><span class="num">1</span><span>跟著花朵慢慢呼吸</span></li>
+      <li><span class="num">2</span><span>讓心裡的雲朵飄走</span></li>
+      <li><span class="num">3</span><span>點亮三盞感恩的燈</span></li>
+    </ul>
+    <p class="muted">請找一個舒服的位置坐好，手指點一下就可以玩。</p>
+    <button class="btn" type="button" data-go="l1">開始遊戲</button>
+  </section>
+
+  <!-- 第一關 -->
+  <section id="l1" class="panel" hidden>
+    <h2 tabindex="-1">第一關：跟著花朵呼吸</h2>
+    <p class="lead">花變大時吸氣，變小時吐氣，照自己的節奏就好。</p>
+    <div class="stage">
+      <div class="flower" id="flower" aria-hidden="true">
+        <svg viewBox="0 0 300 300">
+          <g id="petals"></g>
+          <circle cx="150" cy="150" r="30" fill="var(--lantern)"/>
+        </svg>
+      </div>
+    </div>
+    <p class="phase" id="phase" aria-live="polite">準備好了，就按開始</p>
+    <div class="dots" id="dots" aria-hidden="true"><span></span><span></span><span></span></div>
+    <p class="count" id="count">已完成 0／3 次呼吸</p>
+    <button class="btn" type="button" id="breathBtn">開始呼吸</button>
+    <div class="fact" id="fact1" hidden>
+      <span class="tag">冥想小知識</span>
+      <p>你剛剛慢慢呼吸了三次。放慢呼吸時，身體比較容易放鬆。不少研究指出，規律練習靜心，有助於減輕壓力感，也讓睡前更容易安靜下來。</p>
+    </div>
+    <button class="btn" type="button" id="next1" data-go="l2" hidden>下一關</button>
+  </section>
+
+  <!-- 第二關 -->
+  <section id="l2" class="panel" hidden>
+    <h2 tabindex="-1">第二關：讓雲朵飄走</h2>
+    <p class="lead">心裡常常會冒出各種念頭。輕輕點一下雲朵，就讓它飄走。</p>
+    <p class="count stick" id="cloudCount">還有 5 朵雲</p>
+    <div class="sky" id="sky">
+      <svg class="sun" viewBox="0 0 100 100" aria-hidden="true">
+        <circle cx="50" cy="50" r="22" fill="var(--lantern)"/>
+        <g stroke="var(--lantern)" stroke-width="5" stroke-linecap="round">
+          <path d="M50 8v12M50 80v12M8 50h12M80 50h12M20 20l8 8M72 72l8 8M80 20l-8 8M28 72l-8 8"/>
+        </g>
+      </svg>
+      <button class="cloud" type="button">今天晚餐要煮什麼？</button>
+      <button class="cloud" type="button">上次那件事好像沒做好</button>
+      <button class="cloud" type="button">明天有什麼行程？</button>
+      <button class="cloud" type="button">孩子們過得好嗎？</button>
+      <button class="cloud" type="button">肩膀有點痠</button>
+      <p class="done-msg">天空放晴了</p>
+    </div>
+    <div class="fact" id="fact2" hidden>
+      <span class="tag">冥想小知識</span>
+      <p>念頭來了又走，不用趕走它，也不用抓著它。練習看著念頭經過，有助於專注，心裡也會比較有空間。</p>
+    </div>
+    <button class="btn" type="button" id="next2" data-go="l3" hidden>下一關</button>
+  </section>
+
+  <!-- 第三關 -->
+  <section id="l3" class="panel" hidden>
+    <h2 tabindex="-1">第三關：點亮感恩的燈</h2>
+    <p class="lead">想一想，今天有哪些小事讓你覺得安心或開心？請選三項，每選一項就點亮一盞燈。</p>
+    <div class="lanterns" id="lanterns" aria-live="polite"></div>
+    <div class="cards" id="cards"></div>
+    <p class="count" id="pickCount">已選 0／3 項</p>
+    <div class="fact" id="fact3" hidden>
+      <span class="tag">冥想小知識</span>
+      <p>靜下來回想美好的事，心情會比較踏實。把感謝說出口，也常常讓人和家人朋友走得更近。</p>
+    </div>
+    <button class="btn" type="button" id="next3" data-go="end" hidden>看我的小園</button>
+  </section>
+
+  <!-- 結尾 -->
+  <section id="end" class="panel" hidden>
+    <h2 tabindex="-1">你的靜心小園完成了</h2>
+    <svg class="garden" viewBox="0 0 360 210" role="img" aria-label="一片荷塘，上方有太陽和三盞燈籠">
+      <rect width="360" height="210" fill="var(--sky)"/>
+      <circle cx="298" cy="46" r="24" fill="var(--lantern)"/>
+      <ellipse cx="180" cy="168" rx="200" ry="62" fill="var(--tint)"/>
+      <ellipse cx="90" cy="170" rx="46" ry="12" fill="var(--accent)" opacity=".75"/>
+      <ellipse cx="250" cy="182" rx="52" ry="13" fill="var(--accent)" opacity=".75"/>
+      <g id="gardenLotus1" transform="translate(90 158)"></g>
+      <g id="gardenLotus2" transform="translate(250 170) scale(1.15)"></g>
+      <g stroke="var(--muted)" stroke-width="2"><path d="M70 0v36M180 0v52M290 0v30"/></g>
+      <g id="gardenLanterns"></g>
+    </svg>
+    <p class="lead" id="gardenLine">你點亮了三盞燈。</p>
+
+    <h2 style="font-size:1.25rem">冥想可以帶給生活什麼</h2>
+    <ul class="benefits">
+      <li>
+        <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="var(--tint)"/><path d="M10 22c4-8 8 8 12 0s6 4 8-2" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round"/></svg>
+        <span><strong>放鬆身心</strong>慢慢呼吸，讓緊繃的肩膀和心情鬆下來。</span>
+      </li>
+      <li>
+        <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="var(--tint)"/><path d="M26 10a11 11 0 1 0 4 14 9 9 0 0 1-4-14z" fill="var(--accent)"/></svg>
+        <span><strong>睡得安穩</strong>睡前靜心幾分鐘，腦中的念頭比較容易沉澱。</span>
+      </li>
+      <li>
+        <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="var(--tint)"/><circle cx="20" cy="20" r="9" fill="none" stroke="var(--accent)" stroke-width="3"/><circle cx="20" cy="20" r="3" fill="var(--accent)"/></svg>
+        <span><strong>更能專注</strong>練習把心帶回眼前，做事和聊天都更投入。</span>
+      </li>
+      <li>
+        <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="var(--tint)"/><path d="M20 29s-9-5.5-9-12a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 6.500-9 12-9 12z" fill="var(--bloom)"/></svg>
+        <span><strong>心情平穩</strong>學會看著情緒來去，對生活多一份從容與感謝。</span>
+      </li>
+    </ul>
+
+    <div class="fact">
+      <span class="tag">每天只要 5 分鐘</span>
+      <ol class="recipe">
+        <li>坐在舒服的椅子上，雙手放在腿上。</li>
+        <li>慢慢吸氣數到 4，再慢慢吐氣數到 6，重複 10 次。</li>
+        <li>念頭跑出來時，輕輕回到呼吸就好。</li>
+      </ol>
+    </div>
+    <p class="small">冥想是日常保養，不能取代醫師的診斷與治療。如有身體不適，請諮詢醫療人員。</p>
+    <button class="btn ghost" type="button" data-go="intro">再玩一次</button>
+  </section>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var sections = ['intro', 'l1', 'l2', 'l3', 'end'];
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- 蓮花造型 ---------- */
+  function petalsMarkup(n, rx, ry, cy, cx) {
+    var s = '';
+    for (var i = 0; i < n; i++) {
+      s += '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + rx + '" ry="' + ry + '" fill="var(--bloom)" fill-opacity=".55" stroke="var(--bloom)" stroke-width="3" transform="rotate(' + (i * 360 / n) + ' ' + cx + ' ' + (cy + ry - 2 + 0) + ')"/>';
+    }
+    return s;
+  }
+  $('petals').innerHTML = (function () {
+    var s = '';
+    for (var i = 0; i < 8; i++) {
+      s += '<ellipse cx="150" cy="82" rx="34" ry="62" fill="var(--bloom)" fill-opacity=".55" stroke="var(--bloom)" stroke-width="3" transform="rotate(' + (i * 45) + ' 150 150)"/>';
+    }
+    return s;
+  })();
+  function smallLotus() {
+    var s = '';
+    var angles = [-50, -25, 0, 25, 50];
+    for (var i = 0; i < angles.length; i++) {
+      s += '<ellipse cx="0" cy="-16" rx="8" ry="17" fill="var(--bloom)" fill-opacity=".75" stroke="var(--bloom)" stroke-width="2" transform="rotate(' + angles[i] + ' 0 0)"/>';
+    }
+    return s + '<circle cx="0" cy="-6" r="5" fill="var(--lantern)"/>';
+  }
+  $('gardenLotus1').innerHTML = smallLotus();
+  $('gardenLotus2').innerHTML = smallLotus();
+
+  /* ---------- 字體大小 ---------- */
+  var sizeNames = ['標準', '大', '特大'];
+  var size = 0;
+  try { size = parseInt(localStorage.getItem('jxsize') || '0', 10) || 0; } catch (e) {}
+  function applySize() {
+    var root = document.documentElement;
+    if (size === 0) root.removeAttribute('data-size'); else root.setAttribute('data-size', String(size));
+    $('sizeBtn').textContent = '字體：' + sizeNames[size];
+    try { localStorage.setItem('jxsize', String(size)); } catch (e) {}
+  }
+  $('sizeBtn').addEventListener('click', function () { size = (size + 1) % 3; applySize(); });
+  applySize();
+
+  /* ---------- 換頁 ---------- */
+  function reveal(el) {
+    setTimeout(function () {
+      try { el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' }); } catch (e) {}
+    }, 150);
+  }
+  var lock = null;
+  function wakeOn() {
+    try { if (navigator.wakeLock) navigator.wakeLock.request('screen').then(function (l) { lock = l; }, function () {}); } catch (e) {}
+  }
+  function wakeOff() {
+    try { if (lock) { lock.release(); lock = null; } } catch (e) {}
+  }
+  var stepOf = { intro: 0, l1: 1, l2: 2, l3: 3, end: 4 };
+  function go(id) {
+    sections.forEach(function (s) { $(s).hidden = (s !== id); });
+    var cur = stepOf[id];
+    var items = document.querySelectorAll('#steps li');
+    for (var i = 0; i < items.length; i++) {
+      var n = i + 1;
+      items[i].classList.toggle('done', n < cur);
+      if (n === cur) items[i].setAttribute('aria-current', 'step'); else items[i].removeAttribute('aria-current');
+    }
+    if (id === 'intro') resetAll();
+    window.scrollTo(0, 0);
+    var h = $(id).querySelector('h1, h2');
+    if (h) h.focus({ preventScroll: true });
+  }
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-go]');
+    if (t) go(t.getAttribute('data-go'));
+  });
+
+  /* ---------- 第一關：呼吸 ---------- */
+  var flower = $('flower');
+  var lo = reduce ? 0.8 : 0.5, hi = 1;
+  var round = 0, running = false, timers = [];
+  function setScale(v, secs) {
+    flower.style.transition = 'transform ' + secs + 's ease-in-out';
+    flower.style.transform = 'scale(' + v + ')';
+  }
+  function clearTimers() { timers.forEach(clearTimeout); timers = []; }
+  function updateBreathUI() {
+    var dots = $('dots').children;
+    for (var i = 0; i < dots.length; i++) dots[i].classList.toggle('on', i < round);
+    $('count').textContent = '已完成 ' + round + '／3 次呼吸';
+  }
+  function cycle() {
+    if (!running) return;
+    $('phase').textContent = '慢慢吸氣……';
+    setScale(hi, 4);
+    timers.push(setTimeout(function () {
+      if (!running) return;
+      $('phase').textContent = '慢慢吐氣……';
+      setScale(lo, 6);
+      timers.push(setTimeout(function () {
+        round++;
+        updateBreathUI();
+        if (round >= 3) { finishBreath(); } else { cycle(); }
+      }, 6000));
+    }, 4000));
+  }
+  function finishBreath() {
+    running = false;
+    clearTimers();
+    $('phase').textContent = '做得很好，花開了';
+    setScale(hi, 1.5);
+    $('breathBtn').hidden = true;
+    $('fact1').hidden = false;
+    $('next1').hidden = false;
+    wakeOff();
+    reveal($('fact1'));
+  }
+  $('breathBtn').addEventListener('click', function () {
+    if (!running) {
+      running = true;
+      $('breathBtn').textContent = '休息一下';
+      wakeOn();
+      cycle();
+    } else {
+      running = false;
+      clearTimers();
+      setScale(lo, 1);
+      wakeOff();
+      $('phase').textContent = '好好休息，準備好再按開始';
+      $('breathBtn').textContent = '繼續呼吸';
+    }
+  });
+
+  /* ---------- 第二關：雲朵 ---------- */
+  var clouds = Array.prototype.slice.call(document.querySelectorAll('.cloud'));
+  var left = clouds.length;
+  clouds.forEach(function (c) {
+    c.addEventListener('click', function () {
+      if (c.classList.contains('gone')) return;
+      c.classList.add('gone');
+      setTimeout(function () { c.classList.add('hidden'); }, 1900);
+      left--;
+      if (left > 0) {
+        $('cloudCount').textContent = '還有 ' + left + ' 朵雲';
+      } else {
+        $('cloudCount').textContent = '心裡變得清爽了';
+        $('sky').classList.add('clear');
+        $('fact2').hidden = false;
+        $('next2').hidden = false;
+        reveal($('fact2'));
+      }
+    });
+  });
+
+  /* ---------- 第三關：感恩 ---------- */
+  var gifts = ['家人和朋友的陪伴', '一杯熱熱的茶', '今天的好天氣', '一頓好吃的飯', '一首喜歡的歌', '公園裡的散步', '一通問候的電話', '能睡的一張好床'];
+  var picked = [];
+  var cardsEl = $('cards');
+  gifts.forEach(function (g) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'card';
+    b.textContent = g;
+    b.setAttribute('aria-pressed', 'false');
+    b.addEventListener('click', function () {
+      var i = picked.indexOf(g);
+      if (i >= 0) picked.splice(i, 1);
+      else if (picked.length < 3) picked.push(g);
+      renderGratitude();
+    });
+    cardsEl.appendChild(b);
+  });
+  var lanternSvg = '<svg viewBox="0 0 60 80" aria-hidden="true"><path d="M30 0v10" stroke="var(--muted)" stroke-width="3"/><rect x="18" y="8" width="24" height="6" rx="2" fill="var(--muted)"/><ellipse class="glow" cx="30" cy="40" rx="22" ry="26"/><path d="M30 14v52M16 24c4 10 4 22 0 32M44 24c-4 10-4 22 0 32" fill="none" stroke="var(--bg)" stroke-opacity=".5" stroke-width="2"/><rect x="22" y="64" width="16" height="6" rx="2" fill="var(--muted)"/><path d="M26 70v8M30 70v10M34 70v8" stroke="var(--bloom)" stroke-width="2.5" stroke-linecap="round"/></svg>';
+  function renderGratitude() {
+    var cards = cardsEl.children;
+    for (var i = 0; i < cards.length; i++) {
+      var on = picked.indexOf(gifts[i]) >= 0;
+      cards[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+      cards[i].disabled = !on && picked.length >= 3;
+    }
+    var html = '';
+    for (var k = 0; k < 3; k++) {
+      var has = k < picked.length;
+      html += '<div class="lantern' + (has ? ' lit' : '') + '">' + lanternSvg + '<b>' + (has ? picked[k] : '尚未點亮') + '</b></div>';
+    }
+    $('lanterns').innerHTML = html;
+    $('pickCount').textContent = picked.length < 3 ? '已選 ' + picked.length + '／3 項' : '三盞燈都亮了';
+    var done = picked.length === 3;
+    $('fact3').hidden = !done;
+    $('next3').hidden = !done;
+    if (done) reveal($('fact3'));
+  }
+  renderGratitude();
+
+  /* ---------- 結尾小園 ---------- */
+  function buildGarden() {
+    var xs = [70, 180, 290], ys = [36, 52, 30], out = '';
+    for (var i = 0; i < 3; i++) {
+      out += '<g transform="translate(' + xs[i] + ' ' + ys[i] + ')"><ellipse cx="0" cy="18" rx="15" ry="19" fill="var(--lantern)"/><rect x="-8" y="-1" width="16" height="4" rx="1.500" fill="var(--muted)"/><rect x="-7" y="35" width="14" height="4" rx="1.500" fill="var(--muted)"/></g>';
+    }
+    $('gardenLanterns').innerHTML = out;
+    $('gardenLine').textContent = '你點亮了三盞燈：' + picked.join('、') + '。這些小事，就是每天的好時光。';
+  }
+  document.querySelector('[data-go="end"]').addEventListener('click', buildGarden);
+
+  /* ---------- 重新開始 ---------- */
+  function resetAll() {
+    running = false; clearTimers(); round = 0; updateBreathUI();
+    setScale(lo, 0.01);
+    $('phase').textContent = '準備好了，就按開始';
+    $('breathBtn').hidden = false; $('breathBtn').textContent = '開始呼吸';
+    $('fact1').hidden = true; $('next1').hidden = true;
+    left = clouds.length;
+    clouds.forEach(function (c) { c.classList.remove('gone', 'hidden'); });
+    $('sky').classList.remove('clear');
+    $('cloudCount').textContent = '還有 ' + left + ' 朵雲';
+    $('fact2').hidden = true; $('next2').hidden = true;
+    picked = []; renderGratitude();
+  }
+  resetAll();
+  go('intro');
+})();
+</script>
+</body>
+</html>
