@@ -1,0 +1,727 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>聲音共振</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@300;400;500&family=Noto+Serif+TC:wght@300;500&display=swap">
+<style>
+/* Layout: one-screen night pond. Header + progress line, full-bleed canvas stage (starry sky seen through a simulated water surface),
+   overlay cards, and a dock whose controls change by phase (32-key melodica in explore).
+   Look: committed dark-only. Deep navy sky, cool-white specular on water, amber for touchable light points. */
+:root{
+  color-scheme:dark;
+  --ink:#070b18; --ink2:#0f1730; --fg:#e9edf8; --dim:#9aa6c6; --line:rgba(154,166,198,.22);
+  --glow:#86d9e3; --ember:#f0b46e; --card:rgba(9,14,32,.86);
+  --kw:#d9e0f1; --kb:#161e3a;
+  --f-display:"Noto Serif TC","Songti TC","PMingLiU",serif;
+  --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{
+  background:var(--ink);color:var(--fg);font:300 15px/1.75 var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  overflow:hidden;-webkit-user-select:none;user-select:none;
+}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--ember);outline-offset:3px}
+#app{height:100%;display:flex;flex-direction:column;max-width:900px;margin:0 auto}
+.bar{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:2px 16px;padding-block:10px 8px}
+.brand{font:500 17px/1 var(--f-display);letter-spacing:.18em}
+.clock{font:400 13px var(--f-mono);color:var(--dim);font-variant-numeric:tabular-nums;min-height:1em}
+.steps{display:flex;gap:14px;list-style:none;margin:0;padding:0;order:3;width:100%;font-size:12px;letter-spacing:.12em;color:var(--dim)}
+.steps li{opacity:.45;transition:opacity .4s,color .4s}
+.steps li.on{opacity:1;color:var(--glow)}
+.steps li.done{opacity:.8}
+.prog{height:2px;background:var(--line);overflow:hidden}
+.prog i{display:block;height:100%;background:var(--glow);transform-origin:left;transform:scaleX(0)}
+.stage{flex:1;min-height:0;position:relative;margin-top:8px;border-radius:14px;overflow:hidden;
+  background:linear-gradient(var(--ink),var(--ink2));border:1px solid var(--line)}
+#cv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.hint{position:absolute;top:16px;left:50%;transform:translateX(-50%);width:min(34ch,86%);text-align:center;
+  font:300 17px/1.7 var(--f-display);color:var(--fg);pointer-events:none;text-wrap:balance;transition:opacity .6s;
+  text-shadow:0 1px 12px var(--ink),0 0 3px var(--ink)}
+.hint.hide{opacity:0}
+.card{position:absolute;inset:0;display:grid;place-items:center;padding:12px;overflow:auto}
+.card>div{width:min(560px,100%);background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 22px 24px;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.eyebrow{font:400 12px var(--f-mono);letter-spacing:.14em;color:var(--glow);text-transform:uppercase}
+h1{font:300 40px/1.2 var(--f-display);letter-spacing:.2em;margin:6px 0 12px}
+h2{font:500 24px/1.3 var(--f-display);letter-spacing:.14em;margin:4px 0 8px}
+h3{font:500 13px var(--f-body);letter-spacing:.14em;color:var(--dim);margin:20px 0 8px}
+p{margin:0 0 10px}
+.dim{color:var(--dim)}
+.flow{display:grid;gap:6px;margin:14px 0;padding:0;list-style:none;font-size:14px}
+.flow li{display:grid;grid-template-columns:5.5em 1fr;gap:8px}
+.flow b{font-weight:500;color:var(--glow);letter-spacing:.1em}
+.btn{background:transparent;border:1px solid var(--glow);color:var(--fg);border-radius:999px;padding:9px 24px;letter-spacing:.14em;transition:background .25s}
+.btn:hover{background:color-mix(in srgb,var(--glow) 16%,transparent)}
+.btn.quiet{border-color:var(--line);color:var(--dim);padding:5px 16px;font-size:13px}
+.dock{min-height:104px;display:flex;align-items:center;justify-content:center;padding-block:10px 12px}
+.dock>div{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px}
+#dockExplore{flex-direction:column;flex-wrap:nowrap;width:100%;gap:8px}
+/* 32-key melodica, F3 to C6 */
+.kbs{width:100%;max-width:760px;overflow-x:auto;padding-bottom:2px}
+.kb{position:relative;display:flex;height:84px;min-width:440px;border-radius:0 0 6px 6px}
+.wk{flex:1 1 0;min-width:0;border:0;border-right:1px solid color-mix(in srgb,var(--ink) 35%,var(--dim));background:var(--kw);
+  border-radius:0 0 5px 5px;position:relative;color:var(--ink);font:500 9px var(--f-mono);
+  display:flex;align-items:flex-end;justify-content:center;padding:0 0 4px;transition:background .5s}
+.bk{position:absolute;top:0;height:56%;width:3.2%;background:var(--kb);border:1px solid var(--line);border-top:0;
+  border-radius:0 0 4px 4px;z-index:2;padding:0;transition:background .5s}
+.wk.on,.bk.on{background:hsl(var(--h) 75% 68%);transition:background .05s}
+.pad{width:108px;height:108px;border-radius:50%;border:1.5px solid var(--glow);color:var(--fg);letter-spacing:.12em;
+  background:radial-gradient(circle at 50% 40%,color-mix(in srgb,var(--glow) 20%,transparent),transparent 72%);
+  touch-action:none;transition:transform .25s,box-shadow .25s;font-weight:400;line-height:1.4}
+.pad.on{transform:scale(.93);box-shadow:0 0 0 10px color-mix(in srgb,var(--glow) 9%,transparent),0 0 44px color-mix(in srgb,var(--glow) 28%,transparent)}
+.pad:disabled{opacity:.3;cursor:default}
+.result{width:min(420px,92vw);font-size:14px}
+.result p{margin:0 0 8px;text-align:center}
+.bars{display:grid;gap:6px;margin:6px 0 10px}
+.bar-row{display:grid;grid-template-columns:5em 1fr 3.6em;align-items:center;gap:8px;font-size:12px;color:var(--dim)}
+.bar-row span:last-child{font:400 12px var(--f-mono);text-align:right;font-variant-numeric:tabular-nums}
+.bar-row i{display:block;height:6px;border-radius:3px;background:var(--glow)}
+.bar-row.you i{background:var(--ember)}
+.bar-row.vis i{background:var(--dim)}
+.strip{width:100%;height:auto;display:block;margin:10px 0 2px;border-bottom:1px solid var(--line)}
+.strip text{fill:var(--dim);font:400 10px var(--f-mono)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0 0}
+.stats div{border-top:1px solid var(--line);padding-top:8px}
+.stats b{display:block;font:400 22px/1.2 var(--f-mono);color:var(--fg);font-variant-numeric:tabular-nums}
+.stats span{font-size:12px;color:var(--dim)}
+.rounds{display:grid;gap:4px;font-size:14px}
+.rounds div{display:flex;justify-content:space-between;gap:12px}
+.rounds span:last-child{color:var(--dim)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:transparent;border-radius:12px;padding:8px 12px;text-align:left;font-size:14px;line-height:1.5;flex:1 1 220px}
+.chip[aria-pressed=true]{border-color:var(--glow);background:color-mix(in srgb,var(--glow) 10%,transparent)}
+.answer{margin-top:10px;font-size:14px;color:var(--fg);min-height:3em}
+.practice{margin-top:18px;padding:12px 14px;border:1px dashed var(--ember);border-radius:12px;font-size:14px}
+.practice b{color:var(--ember);font-weight:500;letter-spacing:.1em}
+.music{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center}
+.sg{border:1px solid var(--line);background:transparent;border-radius:999px;padding:3px 12px;font-size:12px;letter-spacing:.04em;color:var(--fg)}
+.sg[aria-pressed=true]{border-color:var(--glow);background:color-mix(in srgb,var(--glow) 14%,transparent)}
+.songinfo{font-size:12px;color:var(--dim);text-align:center;line-height:1.5;margin-top:-2px}
+.durs{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 14px}
+.dur{border:1px solid var(--line);background:transparent;border-radius:999px;padding:5px 14px;font-size:13px;letter-spacing:.06em}
+.dur[aria-pressed=true]{border-color:var(--glow);background:color-mix(in srgb,var(--glow) 14%,transparent)}
+.actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+@media (max-width:480px){h1{font-size:34px}.stats b{font-size:18px}.card>div{padding:18px 16px 20px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<main id="app">
+  <header class="bar">
+    <span class="brand">聲音共振</span>
+    <span class="clock" id="clock"></span>
+    <ol class="steps" id="steps">
+      <li>探索</li><li>消失</li><li>回聲</li><li>回望</li>
+    </ol>
+  </header>
+  <div class="prog"><i id="prog"></i></div>
+
+  <div class="stage" id="stage">
+    <canvas id="cv" aria-label="星空下的水面"></canvas>
+    <div class="hint" id="hint" aria-live="polite"></div>
+
+    <section class="card" id="intro">
+      <div>
+        <div class="eyebrow">冥想遊戲 · 3 分鐘起</div>
+        <h1>聲音共振</h1>
+        <p>夜空倒映在水面上，每一次觸碰都會留下一個聲音和一圈波紋。你只需要做一件事：聽它從哪裡出現、停留多久、怎麼消失。</p>
+        <ul class="flow">
+          <li><b>探索</b><span>時間由你決定，點水面、碰星光，或彈 32 鍵口風琴。也可以選一首公共領域的鋼琴曲，只看與聽</span></li>
+          <li><b>消失</b><span>3 輪，水面會先靜下來，你憑耳朵判斷聲音何時結束</span></li>
+          <li><b>回聲</b><span>重聽你剛剛創造的聲音，再看看自己的節奏</span></li>
+        </ul>
+        <h3 style="margin:16px 0 8px">探索多久</h3>
+        <div class="durs" role="group" aria-label="探索時間">
+          <button class="dur" data-ms="60000" aria-pressed="true">1 分鐘</button>
+          <button class="dur" data-ms="120000" aria-pressed="false">2 分鐘</button>
+          <button class="dur" data-ms="180000" aria-pressed="false">3 分鐘</button>
+          <button class="dur" data-ms="300000" aria-pressed="false">5 分鐘</button>
+          <button class="dur" data-ms="0" aria-pressed="false">不限時，自己結束</button>
+        </div>
+        <p class="dim" style="font-size:13px">建議戴耳機，音量調到舒服即可。</p>
+        <div class="actions"><button class="btn" id="start">開始聆聽</button></div>
+      </div>
+    </section>
+
+    <section class="card" id="reflect" hidden>
+      <div id="reflectBody"></div>
+    </section>
+  </div>
+
+  <footer class="dock">
+    <div id="dockExplore" hidden>
+      <div class="music" role="group" aria-label="背景音樂">
+        <button class="sg" data-song="" aria-pressed="true">無音樂</button>
+        <button class="sg" data-song="bach" aria-pressed="false">巴赫 前奏曲</button>
+        <button class="sg" data-song="satie" aria-pressed="false">薩替 裸體舞曲</button>
+        <button class="sg" data-song="canon" aria-pressed="false">帕海貝爾 卡農</button>
+        <button class="sg" id="kbToggle" aria-pressed="false">收起琴鍵</button>
+        <button class="btn quiet" id="skipExplore">結束探索</button>
+      </div>
+      <div class="songinfo" id="songInfo" hidden></div>
+      <div class="kbs" id="kbs"><div class="kb" id="kb" role="group" aria-label="32 鍵口風琴，F3 到 C6"></div></div>
+    </div>
+    <div id="dockFade" hidden>
+      <div class="result" id="result" hidden></div>
+      <button class="pad" id="pad" aria-label="按住聆聽，聲音消失時放開">按住</button>
+      <button class="btn" id="next" hidden>下一輪</button>
+    </div>
+    <div id="dockEcho" hidden>
+      <button class="btn quiet" id="skipEcho">略過</button>
+    </div>
+  </footer>
+</main>
+
+<script>
+(()=>{
+const $=s=>document.querySelector(s);
+const cv=$('#cv'),ctx=cv.getContext('2d');
+let exploreMs=60000,exploreLen=60000,ROUND_T=[5,8,6.5];   // exploreMs 0 means no time limit
+let W=1,H=1;
+
+/* ---------- 32-key melodica: key k=0..31 is F3..C6 chromatic ---------- */
+const NKEYS=32,PC=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
+const pcOf=k=>(5+k)%12, octOf=k=>3+Math.floor((5+k)/12);
+const isBlack=k=>[1,3,6,8,10].includes(pcOf(k));
+const freq=k=>174.61*Math.pow(2,k/12);
+/* pitch to colour: low keys glow red-orange, middle keys green-teal, high keys blue-violet */
+const hue=k=>10+k/(NKEYS-1)*260;
+const col=(k,a=1,l=68)=>`hsl(${hue(k)} 80% ${l}% / ${a})`;
+function tintW(k){
+  const h=hue(k)/60,c=.85,x=c*(1-Math.abs(h%2-1)),s=Math.floor(h)%6;
+  const rgb=[[c,x,0],[x,c,0],[0,c,x],[0,x,c],[x,0,c],[c,0,x]][s].map(v=>v+.12);
+  const sum=rgb[0]+rgb[1]+rgb[2];
+  return rgb.map(v=>.72*v/sum+.28/3);   // weights sum to 1
+}
+/* pond taps and light points use only D-pentatonic keys so anything you do sounds consonant */
+const PENTA=[...Array(NKEYS).keys()].filter(k=>[2,4,6,9,11].includes(pcOf(k)));
+const now=()=>performance.now();
+const rnd=(a,b)=>a+Math.random()*(b-a);
+
+/* ---------- water simulation + starfield ---------- */
+let gw=1,gh=1,cell=2,FA=[],FB=[],MASK,BG,off,offCtx,img,DAMP=.9945;   // three wave fields (R,G,B) so ripples can carry colour
+function sky(){
+  let s=7;const r=()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
+  const d=new Uint8ClampedArray(gw*gh*4);
+  for(let y=0;y<gh;y++)for(let x=0;x<gw;x++){
+    const p=(y*gw+x)*4,v=y/gh;
+    const band=Math.exp(-Math.pow(((x/gw)-.25-(1-v)*.55)*3.2,2));   // faint milky way, diagonal
+    d[p]=6+9*v+22*band;d[p+1]=10+12*v+28*band;d[p+2]=26+26*v+52*band;d[p+3]=255;
+  }
+  const put=(x,y,R,G,Bc)=>{if(x<0||y<0||x>=gw||y>=gh)return;const p=(y*gw+x)*4;d[p]=Math.max(d[p],R);d[p+1]=Math.max(d[p+1],G);d[p+2]=Math.max(d[p+2],Bc);};
+  const n=Math.floor(gw*gh/110);
+  for(let k=0;k<n;k++){
+    const x=Math.floor(r()*gw),y=Math.floor(r()*gh),b=Math.pow(r(),2.6)*.85+.12,warm=r();
+    const R=255*b*(.8+.2*warm),G=255*b*(.88+.1*warm),Bc=255*b*(1-.15*warm);
+    put(x,y,R,G,Bc);
+    if(b>.55){put(x+1,y,R*.5,G*.5,Bc*.55);put(x-1,y,R*.5,G*.5,Bc*.55);put(x,y+1,R*.5,G*.5,Bc*.55);put(x,y-1,R*.5,G*.5,Bc*.55);}
+    if(b>.8){put(x+1,y+1,R*.35,G*.35,Bc*.4);put(x-1,y-1,R*.35,G*.35,Bc*.4);put(x+2,y,R*.25,G*.25,Bc*.3);put(x-2,y,R*.25,G*.25,Bc*.3);}
+  }
+  return d;
+}
+function resize(){
+  const r=cv.getBoundingClientRect(),dp=Math.min(2,devicePixelRatio||1);
+  W=Math.max(1,r.width);H=Math.max(1,r.height);
+  cv.width=W*dp;cv.height=H*dp;ctx.setTransform(dp,0,0,dp,0,0);
+  cell=Math.min(2.4,Math.max(1.3,Math.max(W,H)/640));   // finer water grid
+  gw=Math.max(16,Math.ceil(W/cell));gh=Math.max(16,Math.ceil(H/cell));
+  FA=[0,1,2].map(()=>new Float32Array(gw*gh));FB=[0,1,2].map(()=>new Float32Array(gw*gh));MASK=new Float32Array(gw*gh);
+  for(let y=0;y<gh;y++)for(let x=0;x<gw;x++){
+    const e=Math.min(x,y,gw-1-x,gh-1-y),m=Math.min(1,e/14);
+    MASK[y*gw+x]=.93+.07*m*m*(3-2*m);
+  }
+  BG=sky();off=document.createElement('canvas');off.width=gw;off.height=gh;offCtx=off.getContext('2d');img=offCtx.createImageData(gw,gh);
+}
+new ResizeObserver(resize).observe(cv);resize();
+
+function stepWater(){
+  const d=DAMP;
+  for(let c=0;c<3;c++){
+    const A=FA[c],B=FB[c];
+    for(let y=1;y<gh-1;y++){let i=y*gw+1;for(let x=1;x<gw-1;x++,i++){
+      B[i]=((A[i-1]+A[i+1]+A[i-gw]+A[i+gw])*.5-B[i])*d*MASK[i];
+    }}
+    FA[c]=B;FB[c]=A;
+  }
+}
+/* a droplet: smooth raised hump. low notes make wide, heavy ripples; high notes make small, sharp ones */
+function splat(nx,ny,rPx,amp,w){
+  const cx=nx*W/cell,cy=ny*H/cell,r=Math.max(2,rPx/cell);
+  for(let y=Math.max(1,Math.floor(cy-r));y<=Math.min(gh-2,Math.ceil(cy+r));y++)
+    for(let x=Math.max(1,Math.floor(cx-r));x<=Math.min(gw-2,Math.ceil(cx+r));x++){
+      const dd=Math.hypot(x-cx,y-cy);if(dd>r)continue;
+      const u=dd/r,v=amp*Math.exp(-2.6*u*u)*Math.cos(2.2*Math.PI*u)*(1-u*u),id=y*gw+x;   // central hump plus a few concentric rings
+      FA[0][id]+=v*w[0];FA[1][id]+=v*w[1];FA[2][id]+=v*w[2];
+    }
+}
+function ripple(nx,ny,k,big=1,gain=1){
+  const t=k/(NKEYS-1);
+  const r=(64-52*t)*big*1.25,a=(1.3-.5*t)*(big>1?1.15:1)*gain,w=tintW(k);
+  splat(nx,ny,r,a,w);
+  /* a real drop leaves a train of smaller rings as the surface rebounds */
+  setTimeout(()=>splat(nx,ny,r*.55,-a*.42,w),110);
+  setTimeout(()=>splat(nx,ny,r*.38,a*.3,w),230);
+  setTimeout(()=>splat(nx,ny,r*.26,-a*.18,w),340);
+}
+function resetWater(){FA.forEach(f=>f.fill(0));FB.forEach(f=>f.fill(0));}
+let lastMax=0;
+function renderWater(){
+  const o=img.data,K=128/(cell*cell),S=36/cell,a0=FA[0],a1=FA[1],a2=FA[2];let mx=0;
+  for(let y=0;y<gh;y++)for(let x=0;x<gw;x++){
+    const i=y*gw+x,h0=a0[i],h1=a1[i],h2=a2[i],h=h0+h1+h2;
+    let g0x=0,g0y=0,g1x=0,g1y=0,g2x=0,g2y=0;
+    if(x>0&&x<gw-1&&y>0&&y<gh-1){
+      g0x=a0[i+1]-a0[i-1];g0y=a0[i+gw]-a0[i-gw];
+      g1x=a1[i+1]-a1[i-1];g1y=a1[i+gw]-a1[i-gw];
+      g2x=a2[i+1]-a2[i-1];g2y=a2[i+gw]-a2[i-gw];
+    }
+    const gx=g0x+g1x+g2x,gy=g0y+g1y+g2y;
+    const ah=h<0?-h:h;if(ah>mx)mx=ah;
+    let sx=Math.round(x+gx*K),sy=Math.round(y+gy*K);
+    sx=sx<0?0:sx>=gw?gw-1:sx;sy=sy<0?0:sy>=gh?gh-1:sy;
+    const q=(sy*gw+sx)*4,sh=1+h*.22,p=i*4;
+    let l0=-(g0x*.55+g0y*.83),l1=-(g1x*.55+g1y*.83),l2=-(g2x*.55+g2y*.83);
+    l0=l0>0?Math.min(1,l0*S):0;l1=l1>0?Math.min(1,l1*S):0;l2=l2>0?Math.min(1,l2*S):0;
+    o[p]=BG[q]*.88*sh+l0*l0*Math.sqrt(l0)*140+(h0>0?h0*36:0);
+    o[p+1]=BG[q+1]*.93*sh+l1*l1*Math.sqrt(l1)*150+(h1>0?h1*36:0);
+    o[p+2]=BG[q+2]*1.02*sh+6+l2*l2*Math.sqrt(l2)*185+(h2>0?h2*36:0);o[p+3]=255;
+  }
+  lastMax=mx;offCtx.putImageData(img,0,0);
+  ctx.imageSmoothingEnabled=true;ctx.drawImage(off,0,0,W,H);
+}
+
+/* ---------- audio ---------- */
+let ac=null,master=null;
+function ensureAudio(){
+  try{
+    if(!ac){
+      ac=new (window.AudioContext||window.webkitAudioContext)();
+      master=ac.createGain();master.gain.value=.75;
+      const comp=ac.createDynamicsCompressor();
+      const rev=ac.createConvolver(),len=ac.sampleRate*3.2,buf=ac.createBuffer(2,len,ac.sampleRate);
+      for(let c=0;c<2;c++){const d=buf.getChannelData(c);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.6);}
+      rev.buffer=buf;
+      const wet=ac.createGain();wet.gain.value=.32;
+      master.connect(comp);master.connect(rev);rev.connect(wet);wet.connect(comp);comp.connect(ac.destination);
+    }
+    if(ac.state==='suspended')ac.resume();
+  }catch(e){ac=null}
+}
+/* envelope: quick attack, exponential decay, then a short linear tail to true silence at `dur` */
+function playNote(f,{pan=0,dur=3.6,kind='pluck',vol=.4,at=0}={}){
+  if(!ac)return;
+  const t=ac.currentTime+.01+at,g=ac.createGain();
+  g.gain.setValueAtTime(0,t);
+  g.gain.linearRampToValueAtTime(vol,t+.02);
+  g.gain.exponentialRampToValueAtTime(.004,t+dur*.82);
+  g.gain.linearRampToValueAtTime(0,t+dur);
+  let out=g;
+  if(ac.createStereoPanner){const p=ac.createStereoPanner();p.pan.value=pan;g.connect(p);out=p;}
+  out.connect(master);
+  const parts=kind==='bell'?[[1,1],[2.76,.28],[5.4,.1]]:kind==='piano'?[[1,1],[2,.38],[3,.14],[4,.05]]:[[1,1],[2,.22],[3,.06]];
+  parts.forEach(([m,a])=>{
+    const o=ac.createOscillator(),pg=ac.createGain();
+    o.type='sine';o.frequency.value=f*m;pg.gain.value=a;
+    o.connect(pg);pg.connect(g);o.start(t);o.stop(t+dur+.1);
+  });
+}
+
+/* ---------- melodica keyboard ---------- */
+const kb=$('#kb'),keyEls=[],keyTimers=[];
+(()=>{
+  const nWhite=[...Array(NKEYS).keys()].filter(k=>!isBlack(k)).length;   // 19
+  let w=0;
+  for(let k=0;k<NKEYS;k++){
+    const b=document.createElement('button');
+    b.dataset.k=k;b.style.setProperty('--h',hue(k));
+    b.setAttribute('aria-label',`${PC[pcOf(k)]}${octOf(k)}`);
+    if(isBlack(k)){
+      b.className='bk';b.style.left=`calc(${(w/nWhite*100).toFixed(3)}% - 1.6%)`;
+    }else{
+      b.className='wk';w++;
+      if(pcOf(k)===0||k===0)b.textContent=`${PC[pcOf(k)]}${octOf(k)}`;
+    }
+    keyEls[k]=b;kb.appendChild(b);
+  }
+  kb.addEventListener('pointerdown',e=>{
+    const b=e.target.closest('button');if(!b||phase!=='explore')return;
+    const r=b.getBoundingClientRect(),c=cv.getBoundingClientRect();
+    play(+b.dataset.k,Math.min(.95,Math.max(.05,(r.left+r.width/2-c.left)/c.width)),.78);
+  });
+})();
+function flashKey(k){
+  const el=keyEls[k];if(!el)return;
+  el.classList.add('on');clearTimeout(keyTimers[k]);
+  keyTimers[k]=setTimeout(()=>el.classList.remove('on'),260);
+}
+
+/* ---------- orbs (light points) ---------- */
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* light points do not drift. Each one appears at a random spot, twinkles, fades, and reappears elsewhere.
+   Its pitch follows its height on the pond, and its colour follows its pitch. */
+function keyForY(ny){const n=PENTA.length;return PENTA[Math.max(0,Math.min(n-1,Math.floor((1-ny)*n)))];}
+const STAR_RGB=[[165,195,255],[205,222,255],[255,255,255],[255,240,214],[255,205,150]];   // blue-white to orange, like real star colours
+function respawn(o,t,first){
+  o.dur=rnd(3500,8000);o.nx=rnd(.06,.94);o.ny=rnd(.14,.84);o.k=keyForY(o.ny);
+  o.t0=first?t-rnd(0,o.dur):t+rnd(0,1800);o.dying=0;o.b=0;o.x=o.nx*W;o.y=o.ny*H;
+  o.rgb=STAR_RGB[Math.floor(rnd(0,STAR_RGB.length))];o.size=rnd(.9,1.8);
+  o.f=[rnd(.8,1.5),rnd(.8,1.5),rnd(.8,1.5)];o.ph=[rnd(0,6.3),rnd(0,6.3),rnd(0,6.3)];
+}
+const orbs=Array.from({length:9},()=>{const o={};respawn(o,performance.now(),true);return o;});
+function orbLevel(o,t){
+  if(o.dying){const d=1-(t-o.dying)/1200;return d<=0?-1:d;}
+  const p=(t-o.t0)/o.dur;if(p<0)return 0;if(p>=1)return -1;
+  /* scintillation: three unrelated fast oscillations make the irregular shimmer of a star seen through air */
+  const n=(Math.sin(t*.031*o.f[0]+o.ph[0])+Math.sin(t*.047*o.f[1]+o.ph[1])+Math.sin(t*.019*o.f[2]+o.ph[2]))/3;
+  const sc=reduce?.8:Math.max(.12,.62+.5*n);
+  return Math.pow(Math.sin(Math.PI*p),.8)*sc;
+}
+function drawOrbs(t){
+  orbs.forEach(o=>{
+    let b=orbLevel(o,t);if(b<0){respawn(o,t);b=0;}
+    o.x=o.nx*W;o.y=o.ny*H;o.b=b;
+    if(b<=.02)return;
+    const [r,g,bl]=o.rgb,s=o.size;
+    const R=6+7*b*s,gr=ctx.createRadialGradient(o.x,o.y,0,o.x,o.y,R);   // soft halo
+    gr.addColorStop(0,`rgba(${r},${g},${bl},${.5*b})`);gr.addColorStop(.35,`rgba(${r},${g},${bl},${.13*b})`);gr.addColorStop(1,`rgba(${r},${g},${bl},0)`);
+    ctx.fillStyle=gr;ctx.beginPath();ctx.arc(o.x,o.y,R,0,6.283);ctx.fill();
+    ctx.fillStyle=`rgba(255,255,255,${Math.min(1,.4+b)})`;   // pinpoint core
+    ctx.beginPath();ctx.arc(o.x,o.y,s*(.7+.5*b),0,6.283);ctx.fill();
+    if(b>.55){   // faint diffraction spikes only at the brightest moments
+      const q=(b-.55)/.45,L=(3+8*q)*s;
+      ctx.strokeStyle=`rgba(${r},${g},${bl},${.4*q})`;ctx.lineWidth=.8;ctx.beginPath();
+      ctx.moveTo(o.x-L,o.y);ctx.lineTo(o.x+L,o.y);ctx.moveTo(o.x,o.y-L);ctx.lineTo(o.x,o.y+L);ctx.stroke();
+    }
+    if(o.dying){   // touched: a flash in the colour of its pitch
+      const F=10+(1-b)*40,fg=ctx.createRadialGradient(o.x,o.y,0,o.x,o.y,F);
+      fg.addColorStop(0,col(o.k,.6*b,75));fg.addColorStop(1,col(o.k,0,60));
+      ctx.fillStyle=fg;ctx.beginPath();ctx.arc(o.x,o.y,F,0,6.283);ctx.fill();
+    }
+  });
+}
+
+/* ---------- state ---------- */
+let phase='intro',exploreStart=0,events=[],timers=[],round=0,results=[];
+const clock=$('#clock'),prog=$('#prog'),hint=$('#hint');
+const stepIdx={intro:-1,explore:0,fade:1,echo:2,reflect:3};
+function setHint(t){hint.textContent=t;hint.classList.toggle('hide',!t);}
+function setPhase(p){
+  phase=p;DAMP=p==='fade'?.984:.9945;if(p!=='explore')stopMusic();
+  $('#intro').hidden=p!=='intro';$('#reflect').hidden=p!=='reflect';
+  $('#dockExplore').hidden=p!=='explore';$('#dockFade').hidden=p!=='fade';$('#dockEcho').hidden=p!=='echo';
+  [...$('#steps').children].forEach((li,i)=>{li.classList.toggle('on',i===stepIdx[p]);li.classList.toggle('done',i<stepIdx[p]);});
+  if(p==='intro'||p==='reflect'){setHint('');clock.textContent='';prog.style.transform='scaleX(0)';}
+}
+const fmt=s=>{s=Math.max(0,Math.ceil(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
+let hintStage=0,visQuiet=null;
+function tick(t){
+  if(phase==='explore'){
+    const el=t-exploreStart;
+    if(exploreMs){
+      clock.textContent=fmt((exploreMs-el)/1000);
+      prog.style.transform=`scaleX(${Math.min(1,el/exploreMs)})`;
+    }else{
+      const s=Math.floor(el/1000);
+      clock.textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0')+' · 自由探索';
+    }
+    if(el>18000&&hintStage<1){hintStage=1;setHint('夜空中有小星星在隨機閃爍。趁它還亮著，碰一下。');}
+    if(el>38000&&hintStage<2){hintStage=2;setHint('不用急。兩個聲音之間的安靜，也是風景的一部分。');}
+    if(exploreMs&&el>=exploreMs)endExplore();
+  }
+  if(phase==='fade'&&holdState==='hold'&&visQuiet===null&&t-holdStart>500&&lastMax<.02)visQuiet=(t-holdStart)/1000;
+}
+function frame(){
+  const t=now();
+  stepWater();stepWater();stepWater();
+  renderWater();
+  ctx.globalCompositeOperation='lighter';
+  if(phase==='intro'||phase==='explore')drawOrbs(t);
+  ctx.globalCompositeOperation='source-over';
+  tick(t);
+  requestAnimationFrame(frame);
+}
+
+/* ---------- public-domain piano pieces, synthesised here (no recordings, no copyright) ----------
+   Note tuple: [time s, MIDI note, ring length s, velocity, shows ripple?]. All three are in D major so they agree with the pond's D pentatonic notes. */
+const SONGS={};
+(()=>{
+  const fin=(id,sub,notes,len)=>{notes.sort((a,b)=>a[0]-b[0]);SONGS[id]={sub,notes,len};};
+  /* Bach, Prelude in C major BWV 846: first bars, moved up a tone to D major */
+  {
+    const C=[[60,64,67,72,76],[60,62,69,74,77],[59,62,67,74,77],[60,64,67,72,76],[60,64,69,76,81],[60,62,66,69,74],[59,62,67,74,79],[59,60,64,67,72],[57,60,64,67,72],[50,57,62,66,72],[55,59,62,67,71]];
+    const sx=.2,pat=[0,1,2,3,4,2,3,4],N=[];
+    C.forEach((c,i)=>{for(let r=0;r<2;r++)pat.forEach((p,j)=>N.push([(i*16+r*8+j)*sx,c[p]+2,p===0?4.5:3.2,.55+(j===0?.15:0),j%4===0]));});
+    const t=C.length*16*sx;[50,54,57,62,66].forEach((m,i)=>N.push([t+i*.45,m,7,.6,true]));
+    fin('bach','巴赫《前奏曲 C 大調》BWV 846，1722 年，公共領域。節選並移調為 D 大調。',N,t+9);
+  }
+  /* Satie, Gymnopedie No.1 (1888): simplified arrangement in the style of the original */
+  {
+    const sp=60/56,N=[];
+    for(let b=0;b<16;b++){const g=b%2===0,t=b*3*sp;
+      N.push([t,g?43:50,4.5,.65,false]);
+      (g?[59,62,66]:[57,61,66]).forEach(m=>N.push([t+sp,m,3.4,.4,false]));}
+    [[4,0,78,3],[5,0,81,2],[5,2,79,1],[6,0,78,1],[6,1,73,1],[6,2,71,1],[7,0,73,1],[7,1,74,2],[8,0,76,2],[8,2,74,1],
+     [9,0,73,1],[9,1,71,1],[9,2,69,1],[10,0,71,3],[11,0,78,2],[11,2,76,1],[12,0,74,2],[12,2,73,1],[13,0,69,3],[14,0,78,3],[15,0,74,3]]
+     .forEach(([b,o,m,d])=>N.push([(b*3+o)*sp,m,d*sp*1.3+2,.6,true]));
+    fin('satie','薩替《裸體舞曲 第一號》，1888 年，公共領域。以原曲風格簡化改編。',N,16*3*sp+3);
+  }
+  /* Pachelbel, Canon in D (c.1680): the eight-note ground bass with three variations written on its harmony */
+  {
+    const sp=60/52,N=[],bass=[[50,45],[47,42],[43,38],[43,45]];
+    const half=[[78,76],[74,73],[71,69],[71,73]];
+    const qtr=[[78,74,76,73],[74,71,73,69],[71,67,69,66],[71,74,73,76]];
+    const eig=[[78,74,69,74,76,73,69,73],[74,71,66,71,73,69,66,69],[71,67,62,67,69,66,62,66],[71,67,74,67,73,69,76,69]];
+    for(let c=0;c<4;c++)for(let b=0;b<4;b++){
+      const g=(c*4+b)*4;
+      bass[b].forEach((m,i)=>N.push([(g+i*2)*sp,m,4.2,.6,false]));
+      if(c===1)qtr[b].forEach((m,i)=>N.push([(g+i)*sp,m,sp*1.2+1.8,.55,true]));
+      else if(c===2)eig[b].forEach((m,i)=>N.push([(g+i*.5)*sp,m,sp*.6+1.6,.45,i%2===0]));
+      else half[b].forEach((m,i)=>N.push([(g+i*2)*sp,m,sp*2.4+1.8,.55,true]));
+    }
+    const g=16*4;N.push([g*sp,50,7,.6,false]);[62,66,69,78].forEach(m=>N.push([g*sp,m,7,.5,m===78]));
+    fin('canon','帕海貝爾《D 大調卡農》，約 1680 年，公共領域。以原曲和聲改編。',N,g*sp+8);
+  }
+})();
+let song=null,musicTimer=0,mIdx=0,mBase=0;
+function stopMusic(){clearInterval(musicTimer);musicTimer=0;song=null;}
+function musicNote(n,delay){
+  const m=n[1];
+  playNote(440*Math.pow(2,(m-69)/12),{at:delay,dur:n[2],vol:.2*n[3],kind:'piano',pan:Math.max(-.6,Math.min(.6,(m-62)/30))});
+  if(n[4]===false)return;
+  const k=Math.max(0,Math.min(NKEYS-1,m-53)),nx=Math.max(.06,Math.min(.94,(m-38)/50)),ny=rnd(.3,.72);
+  setTimeout(()=>{if(phase==='explore'&&song)ripple(nx,ny,k,.9,.55);},delay*1000);
+}
+function pumpMusic(){
+  if(!song||!ac)return;
+  const horizon=ac.currentTime+.5;
+  for(;;){
+    if(mIdx>=song.notes.length){if(horizon>=mBase+song.len){mBase+=song.len+2.5;mIdx=0;continue;}break;}
+    const n=song.notes[mIdx],at=mBase+n[0];
+    if(at>horizon)break;
+    musicNote(n,Math.max(0,at-ac.currentTime));mIdx++;
+  }
+}
+function startMusic(id){
+  stopMusic();ensureAudio();
+  if(!ac||!SONGS[id])return;
+  song=SONGS[id];mIdx=0;mBase=ac.currentTime+.3;
+  musicTimer=setInterval(pumpMusic,100);pumpMusic();
+}
+document.querySelectorAll('.sg[data-song]').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.sg[data-song]').forEach(o=>o.setAttribute('aria-pressed',o===b?'true':'false'));
+  const id=b.dataset.song,info=$('#songInfo');
+  if(id){
+    startMusic(id);info.hidden=false;info.textContent=SONGS[id].sub;
+    setHint('不需要彈奏。看著水面，每個音符都會留下一圈波紋，跟著它們一起呼吸。');
+  }else{stopMusic();info.hidden=true;}
+});
+$('#kbToggle').onclick=e=>{
+  const hide=!$('#kbs').hidden;$('#kbs').hidden=hide;
+  e.target.setAttribute('aria-pressed',hide?'true':'false');e.target.textContent=hide?'顯示琴鍵':'收起琴鍵';
+};
+
+/* ---------- explore ---------- */
+function voice(k,nx,ny,kind){
+  const dur=kind==='bell'?5.5:3.6;
+  playNote(freq(k),{pan:(nx*2-1)*.8,dur,kind});
+  ripple(nx,ny,k,kind==='bell'?1.9:1);
+  flashKey(k);
+}
+function play(k,nx,ny,kind='pluck'){
+  voice(k,nx,ny,kind);
+  if(phase==='explore')events.push({t:now()-exploreStart,k,nx,ny,kind});
+}
+function startExplore(){
+  ensureAudio();
+  events=[];hintStage=0;exploreStart=now();
+  document.querySelector('.sg[data-song=""]').click();
+  setPhase('explore');
+  setHint('點一下水面，或彈下方的口風琴。留意聲音怎麼出現、停留，再慢慢消失。');
+}
+function endExplore(){if(phase==='explore'){exploreLen=Math.max(1000,now()-exploreStart);startFade();}}
+const pos=e=>{const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};};
+function touchOrbs(x,y){
+  if(phase!=='explore')return;
+  const t=now();
+  orbs.forEach(o=>{
+    if(!o.dying&&o.b>.25&&Math.hypot(o.x-x,o.y-y)<34){
+      o.dying=t;
+      play(o.k,o.nx,o.ny,'bell');
+    }
+  });
+}
+cv.addEventListener('pointerdown',e=>{
+  if(phase!=='explore')return;
+  const p=pos(e),n=PENTA.length;
+  const idx=Math.max(0,Math.min(n-1,Math.floor((1-p.y/H)*n)));
+  play(PENTA[idx],p.x/W,p.y/H);touchOrbs(p.x,p.y);
+});
+cv.addEventListener('pointermove',e=>{const p=pos(e);touchOrbs(p.x,p.y);});
+document.querySelectorAll('.dur').forEach(b=>b.onclick=()=>{
+  exploreMs=+b.dataset.ms;
+  document.querySelectorAll('.dur').forEach(o=>o.setAttribute('aria-pressed',o===b?'true':'false'));
+});
+$('#start').onclick=startExplore;
+$('#skipExplore').onclick=endExplore;
+
+/* ---------- fade (消失) ---------- */
+const pad=$('#pad'),resultEl=$('#result'),nextBtn=$('#next');
+let holdState='ready',holdStart=0,holdT=0,autoTimer=0;
+/* three random lengths, at least 1 s apart, new every game so the answer cannot be remembered */
+function randomDurations(){
+  let a;
+  do{a=[0,1,2].map(()=>Math.round(rnd(4.5,9.5)*10)/10);}
+  while(Math.min(Math.abs(a[0]-a[1]),Math.abs(a[1]-a[2]),Math.abs(a[0]-a[2]))<1);
+  return a;
+}
+function startFade(){
+  ROUND_T=randomDurations();round=0;results=[];setPhase('fade');prog.style.transform='scaleX(0)';prepRound();
+}
+function prepRound(){
+  holdState='ready';holdT=ROUND_T[round];visQuiet=null;
+  clock.textContent=`第 ${round+1} / 3 輪`;
+  prog.style.transform=`scaleX(${round/3})`;
+  setHint('按住圓點，聽。水面很快會靜下來，用耳朵判斷：聲音完全消失的瞬間，放開。');
+  resultEl.hidden=true;nextBtn.hidden=true;pad.hidden=false;pad.disabled=false;pad.textContent='按住';pad.classList.remove('on');
+}
+function holdDown(){
+  if(holdState!=='ready')return;
+  ensureAudio();holdState='hold';holdStart=now();visQuiet=null;
+  const k=[13,16,11][round];
+  playNote(freq(k),{dur:holdT,vol:.46});
+  ripple(.5,.42,k,1.6);
+  pad.classList.add('on');pad.textContent='放開';
+  setHint('');
+  autoTimer=setTimeout(()=>holdUp(true),(holdT+3.5)*1000);
+}
+function holdUp(forced=false){
+  if(holdState!=='hold')return;
+  holdState='done';clearTimeout(autoTimer);
+  const y=(now()-holdStart)/1000,T=holdT,d=y-T,ad=Math.abs(d).toFixed(1);
+  let kind='close',msg;
+  if(forced){kind='late';msg=`你一直按著，聲音在 ${T} 秒時已經安靜。`;}
+  else if(d<-1.5){kind='early';msg=`你在聲音消失前 ${ad} 秒放開。那時它還在，只是變得很輕。`;}
+  else if(d>1.5){kind='late';msg=`聲音消失後，你又多等了 ${ad} 秒。`;}
+  else msg=`你幾乎和聲音同時放開，相差 ${ad} 秒。`;
+  results.push({T,y,d,kind});
+  const vis=visQuiet,max=Math.max(T,y)+.4,w=v=>(v/max*100).toFixed(1)+'%';
+  resultEl.innerHTML=`<p>${msg}</p><div class="bars">`+
+    (vis!==null?`<div class="bar-row vis"><span>水面靜止</span><div><i style="width:${w(vis)}"></i></div><span>${vis.toFixed(1)}s</span></div>`:'')+
+    `<div class="bar-row"><span>聲音消失</span><div><i style="width:${w(T)}"></i></div><span>${T.toFixed(1)}s</span></div>
+    <div class="bar-row you"><span>你放開</span><div><i style="width:${w(y)}"></i></div><span>${y.toFixed(1)}s</span></div></div>`;
+  resultEl.hidden=false;pad.hidden=true;nextBtn.hidden=false;
+  nextBtn.textContent=round<2?'下一輪':'聽聽你的聲音風景';
+}
+pad.addEventListener('pointerdown',e=>{e.preventDefault();try{pad.setPointerCapture(e.pointerId)}catch(_){}holdDown();});
+pad.addEventListener('pointerup',()=>holdUp());
+pad.addEventListener('pointercancel',()=>holdUp());
+pad.addEventListener('contextmenu',e=>e.preventDefault());
+pad.addEventListener('keydown',e=>{if(e.code==='Space'||e.key==='Enter'){e.preventDefault();if(!e.repeat)holdDown();}});
+pad.addEventListener('keyup',e=>{if(e.code==='Space'||e.key==='Enter'){e.preventDefault();holdUp();}});
+nextBtn.onclick=()=>{round++;if(round<3)prepRound();else startEcho();};
+
+/* ---------- echo (回聲) ---------- */
+function clearTimers(){timers.forEach(clearTimeout);timers=[];}
+function startEcho(){
+  clearTimers();
+  if(!events.length){toReflect();return;}
+  setPhase('echo');prog.style.transform='scaleX(0)';clock.textContent='';
+  setHint('這是你剛剛創造的聲音風景。再聽一次它出現、延續、消失。');
+  const span=events[events.length-1].t,f=Math.min(1,18000/Math.max(span,1));
+  events.forEach(e=>timers.push(setTimeout(()=>voice(e.k,e.nx,e.ny,e.kind),e.t*f+400)));
+  timers.push(setTimeout(toReflect,span*f+400+5200));
+}
+$('#skipEcho').onclick=toReflect;
+
+/* ---------- reflect (回望) ---------- */
+function toReflect(){
+  if(phase==='reflect')return;
+  clearTimers();setPhase('reflect');buildReflect();
+}
+function buildReflect(){
+  const n=events.length,orbN=events.filter(e=>e.kind==='bell').length;
+  const ts=events.map(e=>e.t);
+  let gap=0,gapA=0,gapB=0;
+  for(let i=0;i<ts.length;i++){
+    const a=ts[i],b=i+1<ts.length?ts[i+1]:exploreLen;
+    if(b-a>gap){gap=b-a;gapA=a;gapB=b;}
+  }
+  const third=i=>events.filter(e=>e.t>=i*exploreLen/3&&e.t<(i+1)*exploreLen/3).length;
+  const a=third(0),c=third(2);
+  let rhythm='穩定';
+  if(n>=4){if(c>=a*1.3+1)rhythm='越來越密';else if(c<=a*.7)rhythm='越來越慢';}else rhythm='很節制';
+  const rhythmNote={
+    '穩定':'前後節奏差不多，你維持住了自己的步調。',
+    '越來越密':'後半段變得更密集。有時是進入狀況，也有時是安靜變得難以忍受。',
+    '越來越慢':'後半段你放慢了，給每個聲音更多空間。',
+    '很節制':'你只留下很少的聲音，大部分時間在聽。'
+  }[rhythm];
+  const avg=results.length?results.reduce((s,r)=>s+r.d,0)/results.length:0;
+  const tend=avg<-1.2?'early':avg>1.2?'late':'close';
+  const tendNote={
+    early:'三輪平均來看，你傾向在聲音還沒完全結束時就離開。',
+    late:'三輪平均來看，你傾向在聲音結束後繼續等待。',
+    close:'三輪平均來看，你和聲音的結束貼得很近。'
+  }[tend];
+  const practice={
+    early:'寄出下一則訊息前，先讓自己的一次呼氣完整結束，再按送出。',
+    late:'做完一件事後，用 10 秒在心裡說「這件事結束了」，再開始下一件。',
+    close:'下次開會前，用 30 秒聽辦公室裡的聲音，看哪一個最先消失。'
+  }[tend];
+  const qs=[
+    ['你有幾次，在聲音還沒消失就點下一個？',`工作中，這像是前一件事還沒收尾就跳到下一件。你這次有 ${n} 個聲音，下次可以試著在切換任務前停一個呼吸。`],
+    ['水面靜了、聲音還在的那幾秒，你的注意力在哪？','很多事情只是「看不見了」，並沒有結束。今天找一個還在持續的背景聲，例如空調、鍵盤或遠處的車聲，聽它 10 秒。'],
+    ['你多久沒有讓自己只是聽？',`這次你最長的安靜是 ${(gap/1000).toFixed(1)} 秒。把它當成今天的基準，明天試著多 1 秒。`]
+  ];
+  let svg='';
+  if(n){
+    const X=t=>10+t/exploreLen*580,Y=k=>98-k/(NKEYS-1)*84;
+    svg=`<svg class="strip" viewBox="0 0 600 124" role="img" aria-label="你的聲音風景時間軸">`+
+      `<rect x="${X(gapA)}" y="6" width="${X(gapB)-X(gapA)}" height="96" fill="rgba(240,180,110,.12)"/>`+
+      events.map(e=>`<circle cx="${X(e.t).toFixed(1)}" cy="${Y(e.k).toFixed(1)}" r="${e.kind==='bell'?6:4.5}" fill="${col(e.k,.9,70)}"/>`).join('')+
+      `<text x="10" y="120">0s</text><text x="590" y="120" text-anchor="end">${Math.round(exploreLen/1000)}s</text>`+
+      `<text x="${(X(gapA)+X(gapB))/2}" y="120" text-anchor="middle">最長的安靜</text></svg>`;
+  }
+  const rows=results.map((r,i)=>{
+    const lab=r.kind==='early'?`提早 ${Math.abs(r.d).toFixed(1)}s`:r.kind==='late'?`多停留 ${r.d.toFixed(1)}s`:'貼近';
+    return `<div><span>第 ${i+1} 輪 · 聲音 ${r.T}s</span><span>${lab}</span></div>`;
+  }).join('');
+  $('#reflectBody').innerHTML=`
+    <div class="eyebrow">回望</div>
+    <h2>你剛剛聽見了什麼</h2>
+    <p class="dim">${n?`${n} 個聲音，其中 ${orbN} 個來自星光。`:'這次你沒有留下聲音，只是聽。這也是一種做法。'}</p>
+    ${svg}
+    <div class="stats">
+      <div><b>${n}</b><span>聲音</span></div>
+      <div><b>${(gap/1000).toFixed(1)}s</b><span>最長的安靜</span></div>
+      <div><b style="font-family:var(--f-body);font-size:16px;line-height:1.8">${rhythm}</b><span>節奏</span></div>
+    </div>
+    <p style="margin-top:10px;font-size:14px">${rhythmNote}</p>
+    <h3>消失練習</h3>
+    <div class="rounds">${rows}</div>
+    <p style="margin-top:8px;font-size:14px">${tendNote}沒有對錯，這只是你此刻和「結束」相處的方式。</p>
+    <h3>帶回工作的三個問題</h3>
+    <div class="chips" id="chips">${qs.map((q,i)=>`<button class="chip" aria-pressed="false" data-k="${i}">${q[0]}</button>`).join('')}</div>
+    <div class="answer" id="answer" aria-live="polite">選一個問題，看看它在日常裡長什麼樣子。</div>
+    <div class="practice"><b>今天的 30 秒練習</b><br>${practice}</div>
+    <div class="actions"><button class="btn" id="again">再玩一次</button></div>`;
+  document.querySelectorAll('#chips .chip').forEach(ch=>ch.onclick=()=>{
+    document.querySelectorAll('#chips .chip').forEach(o=>o.setAttribute('aria-pressed',o===ch?'true':'false'));
+    $('#answer').textContent=qs[+ch.dataset.k][1];
+  });
+  $('#again').onclick=()=>{clearTimers();resetWater();setPhase('intro');};
+  $('#reflect').scrollTop=0;
+}
+
+setPhase('intro');
+requestAnimationFrame(frame);
+})();
+</script>
+
+</body></html>
