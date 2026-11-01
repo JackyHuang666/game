@@ -1,0 +1,788 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>靜心四式</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&family=Noto+Serif+TC:wght@600;900&display=swap">
+<style>
+/* Layout: one calm column. Home = four module tiles -> pick one of 3 play modes -> one task per screen, big buttons, no timers. */
+:root{
+  --bg:#E9F0ED; --surface:#FFFFFF; --fg:#14302B; --muted:#47605B; --line:#BCCFC9; --soft:#DCE8E4;
+  --accent:#17695E; --on-accent:#FFFFFF;
+  --c-body:#1B6F5C; --c-mind:#3A5CA0; --c-brain:#9C5A12; --c-cog:#84467A; --on-c:#FFFFFF;
+  --sq1:#B8321F; --sq1-fg:#FFFFFF; --sq2:#E0B100; --sq2-fg:#2A2200;
+  --sq3:#2A68B0; --sq3-fg:#FFFFFF; --sq4:#2A8450; --sq4-fg:#FFFFFF;
+  --f-serif:'Noto Serif TC','Songti TC','PMingLiU',serif;
+  --f-sans:'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;
+  --fs:22px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1D1A; --surface:#172A26; --fg:#E7F2EE; --muted:#A9C0BA; --line:#2F4742; --soft:#1F3631;
+    --accent:#5FC2A8; --on-accent:#08201A;
+    --c-body:#5FC2A8; --c-mind:#8FB0F0; --c-brain:#E3A558; --c-cog:#D79BC8; --on-c:#0B1A18;
+    --sq1:#E0604D; --sq1-fg:#1A0805; --sq2:#F0C530; --sq2-fg:#2A2200;
+    --sq3:#6FA2E8; --sq3-fg:#08182C; --sq4:#5CC088; --sq4-fg:#07200F;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1D1A; --surface:#172A26; --fg:#E7F2EE; --muted:#A9C0BA; --line:#2F4742; --soft:#1F3631;
+  --accent:#5FC2A8; --on-accent:#08201A;
+  --c-body:#5FC2A8; --c-mind:#8FB0F0; --c-brain:#E3A558; --c-cog:#D79BC8; --on-c:#0B1A18;
+  --sq1:#E0604D; --sq1-fg:#1A0805; --sq2:#F0C530; --sq2-fg:#2A2200;
+  --sq3:#6FA2E8; --sq3-fg:#08182C; --sq4:#5CC088; --sq4-fg:#07200F;
+  color-scheme:dark;
+}
+:root[data-size="xl"]{--fs:27px}
+:root[data-size="tv"]{--fs:34px}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-sans);font-size:var(--fs);line-height:1.7;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:1em 3em}
+#app{max-width:40em;margin:0 auto}
+:root[data-size="tv"] #app{max-width:58em}
+h1,h2,h3{font-family:var(--f-serif);line-height:1.3;margin:0;text-wrap:balance}
+h1{font-size:1.9em;font-weight:900;letter-spacing:.02em}
+h2{font-size:1.5em;font-weight:900;display:flex;align-items:center;gap:.6em;margin:.9em 0 .4em}
+h3{font-size:1.25em;font-weight:600;margin-bottom:.4em}
+h1:focus,h2:focus{outline:none}
+p{margin:.5em 0}
+.lead{color:var(--muted);max-width:32em}
+.muted{color:var(--muted)}
+.center{text-align:center}
+.head{padding-block:.8em 1em}
+
+.today{display:flex;align-items:center;gap:1em;flex-wrap:wrap;background:var(--surface);border:2px solid var(--line);border-radius:1em;padding:.8em 1.1em;margin-bottom:1.2em}
+.today p{margin:0}
+.pds{display:flex;gap:.5em}
+.pd{width:1.2em;height:1.2em;border-radius:50%;border:3px solid var(--c)}
+.pd.on{background:var(--c)}
+
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,17em),1fr));gap:1em;margin-top:.8em}
+:root[data-size="tv"] .tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
+.home-tiles{margin-top:0}
+.tile{display:grid;grid-template-columns:auto minmax(0,1fr);gap:.9em;align-items:center;text-align:left;width:100%;
+  font:inherit;color:var(--fg);background:var(--surface);border:2px solid var(--line);border-radius:1em;padding:1em;cursor:pointer;min-height:6.5em}
+.tile:hover{border-color:var(--c)}
+.tile.done{border-color:var(--c)}
+.tile b{display:block;font-size:1.1em}
+.tile span.d{display:block;font-size:.85em;color:var(--muted);line-height:1.5}
+.emb{width:3.2em;height:3.2em;border-radius:50%;background:var(--c);color:var(--on-c);display:grid;place-items:center;
+  font-family:var(--f-serif);font-weight:900;font-size:1.5em;line-height:1;flex:none}
+.emb.sm{width:1.7em;height:1.7em;font-size:1em}
+.pill{display:inline-block;margin-top:.3em;padding:0 .7em;border-radius:99px;font-size:.75em;font-weight:700;border:2px solid var(--c);color:var(--c)}
+.pill.on{background:var(--c);color:var(--on-c)}
+
+.settings{display:flex;gap:.6em;flex-wrap:wrap;margin-top:1.4em}
+.chip{font:inherit;font-size:.8em;font-weight:700;color:var(--fg);background:transparent;border:2px solid var(--line);border-radius:99px;
+  padding:.35em 1em;min-height:2.6em;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--soft);border-color:var(--accent)}
+.note{font-size:.72em;color:var(--muted);margin-top:1.6em;max-width:40em}
+
+.btn{font:inherit;font-weight:700;min-height:3.1em;padding:.5em 1.4em;border-radius:.8em;border:2px solid var(--c,var(--accent));
+  background:var(--c,var(--accent));color:var(--on-c,var(--on-accent));cursor:pointer}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--c,var(--accent))}
+.btn.sm{min-height:2.4em;font-size:.8em;padding-inline:.9em}
+.btn.wide{width:100%;margin-top:1em;font-size:1.05em}
+.row{display:flex;gap:.8em;flex-wrap:wrap;margin-top:1em}
+.row .btn{flex:1 1 9em}
+:is(button,a):focus-visible{outline:4px solid var(--fg);outline-offset:3px}
+:root[data-size="tv"] :is(button,a):focus-visible{outline-width:7px}
+
+.game{--c:var(--c-body)}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:.8em;flex-wrap:wrap}
+.bar .btn{min-height:2.6em;padding-inline:1em;font-size:.85em}
+.meta{display:flex;justify-content:space-between;gap:.6em;flex-wrap:wrap;color:var(--muted);font-weight:700;font-size:.85em;margin:0 0 .6em}
+.card{background:var(--surface);border:2px solid var(--line);border-radius:1em;padding:1em 1.2em}
+.plain{margin:.4em 0;padding-left:1.2em}
+.plain li{margin:.2em 0}
+
+.orb{position:relative;width:min(14em,78vw);aspect-ratio:1;margin:.6em auto 0}
+.orb .ring{position:absolute;inset:0;border-radius:50%;border:3px dashed var(--line)}
+.orb .core{position:absolute;inset:0;border-radius:50%;background:var(--c);opacity:.88;transform:scale(.5)}
+.orb .core.pulse{animation:pulse 8s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(.5)}50%{transform:scale(.95)}}
+.phase{font-family:var(--f-serif);font-weight:900;font-size:1.6em;text-align:center;margin:.4em 0 0}
+.count{font-size:2.2em;font-weight:700;text-align:center;color:var(--c);line-height:1.2;margin:0;font-variant-numeric:tabular-nums;min-height:1.2em}
+.dots{display:flex;gap:.5em;justify-content:center;margin:.6em 0}
+.dots span{width:1.1em;height:1.1em;border-radius:50%;border:3px solid var(--c)}
+.dots span.on{background:var(--c)}
+
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8em;margin-top:.8em}
+.opt{font:inherit;font-weight:700;color:var(--fg);background:var(--surface);border:2px solid var(--line);border-radius:.8em;
+  min-height:3.4em;padding:.4em .8em;cursor:pointer;text-align:center}
+.opt small{display:block;font-weight:400;font-size:.7em;color:inherit;opacity:.85;line-height:1.4}
+.opt[aria-pressed="true"],.opt.right{background:var(--c);color:var(--on-c);border-color:var(--c)}
+.opt.sel{border-style:dashed;border-color:var(--c);background:var(--soft)}
+.opt.miss{border-style:dashed;border-color:var(--c)}
+.fb{border-radius:.8em;background:var(--soft);padding:.6em 1em;margin-top:.8em}
+
+.pads{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8em;margin:.8em 0}
+.pad{font:inherit;font-weight:900;font-size:1.3em;min-height:5em;border-radius:1em;border:4px solid transparent;cursor:pointer;
+  opacity:.55;transition:opacity .15s,transform .15s}
+.pad.p0{background:var(--sq1);color:var(--sq1-fg)} .pad.p1{background:var(--sq2);color:var(--sq2-fg)}
+.pad.p2{background:var(--sq3);color:var(--sq3-fg)} .pad.p3{background:var(--sq4);color:var(--sq4-fg)}
+.pads.live .pad{opacity:.9}
+.pad.lit{opacity:1;transform:scale(1.04);border-color:var(--fg);box-shadow:0 0 0 4px var(--bg),0 0 0 8px var(--fg)}
+.status{font-weight:700;text-align:center;min-height:1.7em;margin:.4em 0}
+.big{font-family:var(--f-serif);font-size:1.7em;font-weight:900;margin:.2em 0}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(7.5em,1fr));gap:.7em;margin:.8em 0}
+.mc{font:inherit;font-weight:700;min-height:4.6em;border-radius:.8em;border:3px solid var(--c);cursor:pointer;padding:.3em;line-height:1.3}
+.mc.down{background:var(--c);color:var(--on-c);font-size:1.4em}
+.mc.up{background:var(--surface);color:var(--fg)}
+.mc.ok{background:var(--soft);color:var(--fg);border-color:var(--accent)}
+.words{display:flex;flex-wrap:wrap;gap:.6em;justify-content:center;margin:.8em 0}
+.word{background:var(--surface);border:3px solid var(--c);border-radius:.8em;padding:.4em 1em;font-weight:700;font-size:1.2em}
+.ol{margin:.4em 0;padding-left:1.6em}
+.ol li{margin:.2em 0;font-weight:700}
+@media (prefers-reduced-motion:reduce){.pad{transition:none}.pad.lit{transform:none}.orb .core.pulse{animation:none;transform:scale(.8)}}
+@media (max-width:480px){.grid2.stack{grid-template-columns:1fr}}
+</style>
+
+<div id="app"></div>
+
+<script>
+(function(){
+'use strict';
+const KEY='jingxin-siji-v2';
+const store={days:{},level:{},settings:{size:'m',sound:true,voice:false,music:false}};
+try{
+  const s0=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem('jingxin-siji-v1'));
+  if(s0){
+    store.days=s0.days||{};store.level=s0.level||{};
+    Object.assign(store.settings,s0.settings||{});
+    if(s0.settings&&s0.settings.xl&&!s0.settings.size)store.settings.size='xl';
+  }
+}catch(e){}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(store));}catch(e){}}
+function applySize(){const s=store.settings.size;if(s==='xl'||s==='tv')document.documentElement.setAttribute('data-size',s);else document.documentElement.removeAttribute('data-size');}
+applySize();
+let REDUCE=false;try{REDUCE=matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+
+/* ---------- levels ---------- */
+const LV=['輕鬆','適中','進階'];
+const getLv=k=>store.level[k]||1;
+const setLv=(k,v)=>{store.level[k]=Math.max(1,Math.min(3,v));persist();};
+
+/* ---------- modules and modes ---------- */
+const MODS={
+  body:{ch:'身',name:'呼吸與伸展',desc:'坐著或扶著椅子，慢慢呼吸、活動身體',c:'--c-body'},
+  mind:{ch:'心',name:'覺察與感恩',desc:'看看心情、放鬆身體、想想感謝的事',c:'--c-mind'},
+  brain:{ch:'腦',name:'記憶與專注',desc:'燈號記憶、節慶配對、記物品',c:'--c-brain'},
+  cog:{ch:'知',name:'思考與判斷',desc:'節慶、健康生活小問答和排步驟',c:'--c-cog'}
+};
+const ORDER=['body','mind','brain','cog'];
+const MODES={
+  body:[
+    {id:'sit',ch:'坐',name:'坐著伸展',desc:'坐在椅子上，呼吸並活動上半身'},
+    {id:'stand',ch:'站',name:'扶椅站立',desc:'一手扶著椅背，活動雙腳和身體'},
+    {id:'breath',ch:'息',name:'只做呼吸',desc:'跟著圓圈慢慢呼吸，最輕鬆'}],
+  mind:[
+    {id:'weather',ch:'晴',name:'心情天氣',desc:'看看今天的心情，做幾次慢呼吸'},
+    {id:'scan',ch:'掃',name:'身體掃描',desc:'從頭到腳，一處一處放鬆'},
+    {id:'thanks',ch:'謝',name:'感恩時刻',desc:'想一想今天值得感謝的事'}],
+  brain:[
+    {id:'seq',ch:'燈',name:'燈號記憶',desc:'記住燈亮的順序，再照順序按'},
+    {id:'match',ch:'配',name:'節慶配對',desc:'把節慶和它的食物或習俗配成一對'},
+    {id:'items',ch:'物',name:'記物品',desc:'看一看有哪些東西，再把它們找出來'}],
+  cog:[
+    {id:'fest',ch:'節',name:'節慶問答',desc:'端午、中秋、過年的小常識'},
+    {id:'health',ch:'康',name:'健康生活',desc:'日常保健與生活小常識'},
+    {id:'order',ch:'序',name:'排排看',desc:'把做事的步驟照順序排好'}]
+};
+
+/* ---------- days ---------- */
+function ymd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function dayRec(d){return store.days[ymd(d)]||{};}
+function hasAny(d){return Object.keys(dayRec(d)).length>0;}
+function streak(){const d=new Date();let n=0;if(!hasAny(d))d.setDate(d.getDate()-1);while(hasAny(d)){n++;d.setDate(d.getDate()-1);}return n;}
+function markDone(k){const key=ymd(new Date());store.days[key]=store.days[key]||{};if(!store.days[key][k]){store.days[key][k]=true;persist();}}
+
+/* ---------- sound ---------- */
+let ac=null,music=null;
+function ctx(){ac=ac||new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();return ac;}
+function tone(f,dur,vol){
+  if(!store.settings.sound||!f)return;dur=dur||.4;vol=vol||.1;
+  try{const c=ctx(),o=c.createOscillator(),g=c.createGain(),t=c.currentTime;o.type='sine';o.frequency.value=f;
+    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.05);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+dur+.05);}catch(e){}
+}
+function musicOn(){
+  if(music)return;
+  try{
+    const c=ctx(),master=c.createGain();master.gain.value=.0001;master.connect(c.destination);
+    master.gain.exponentialRampToValueAtTime(.6,c.currentTime+3);
+    const len=c.sampleRate*4,buf=c.createBuffer(1,len,c.sampleRate),d=buf.getChannelData(0);let last=0;
+    for(let i=0;i<len;i++){const w=Math.random()*2-1;last=(last+.02*w)/1.02;d[i]=last*3.5;}
+    const src=c.createBufferSource();src.buffer=buf;src.loop=true;
+    const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=420;
+    const ng=c.createGain();ng.gain.value=.12;
+    const lfo=c.createOscillator(),lg=c.createGain();lfo.frequency.value=.12;lg.gain.value=160;lfo.connect(lg);lg.connect(lp.frequency);
+    src.connect(lp);lp.connect(ng);ng.connect(master);src.start();lfo.start();
+    const notes=[262,294,330,392,440,523,588];
+    const iv=setInterval(()=>{
+      if(!music||c.state!=='running')return;
+      const o=c.createOscillator(),g=c.createGain(),t=c.currentTime;o.type='sine';o.frequency.value=notes[Math.floor(Math.random()*notes.length)];
+      g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.05,t+.08);g.gain.exponentialRampToValueAtTime(.0001,t+3.2);
+      o.connect(g);g.connect(master);o.start(t);o.stop(t+3.3);
+    },4200);
+    music={master,src,lfo,iv};
+  }catch(e){music=null;}
+}
+function musicOff(){
+  if(!music)return;const m=music;music=null;clearInterval(m.iv);
+  try{const c=ac;m.master.gain.cancelScheduledValues(c.currentTime);
+    m.master.gain.setValueAtTime(Math.max(.0001,m.master.gain.value),c.currentTime);
+    m.master.gain.exponentialRampToValueAtTime(.0001,c.currentTime+1);}catch(e){}
+  setTimeout(()=>{try{m.src.stop();m.lfo.stop();m.master.disconnect();}catch(e){}},1200);
+}
+document.addEventListener('visibilitychange',()=>{
+  try{if(ac){if(document.hidden)ac.suspend();else ac.resume();}}catch(e){}
+});
+function speak(t){
+  if(!store.settings.voice)return;
+  try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='zh-TW';u.rate=.85;speechSynthesis.speak(u);}catch(e){}
+}
+
+/* ---------- core ---------- */
+const app=document.getElementById('app');
+const $=id=>document.getElementById(id);
+let timers=[],gen=0,current='home',G={mode:null},kb=false;
+function later(fn,ms){const g=gen;const id=setTimeout(()=>{if(g===gen)fn();},ms);timers.push(id);return id;}
+function stopAll(){gen++;timers.forEach(clearTimeout);timers=[];try{speechSynthesis.cancel();}catch(e){}}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function scrollTop(){try{window.scrollTo(0,0);}catch(e){}}
+
+function adapt(ok){
+  const key=G.key,lv=getLv(key);
+  if(ok){G.up++;G.dn=0;if(G.up>=2){if(lv<3)setLv(key,lv+1);G.up=0;}}
+  else{G.dn++;G.up=0;if(G.dn>=2){if(lv>1)setLv(key,lv-1);G.dn=0;}}
+}
+function musicLabel(short){return (short?'♪ 音樂：':'背景音樂：')+(store.settings.music?'開':'關');}
+
+/* ---------- shared view pieces ---------- */
+function shell(k,stepText,inner){
+  const m=MODS[k];
+  const lvl=G.key?'<span>難度：'+LV[getLv(G.key)-1]+'</span>':'<span></span>';
+  return '<div class="game" style="--c:var('+m.c+')"><div class="bar"><button class="btn ghost" data-act="home">← 回首頁</button>'+
+    '<button class="btn ghost" data-act="set" data-v="music" data-s="1" aria-pressed="'+store.settings.music+'">'+musicLabel(true)+'</button></div>'+
+    '<h2 tabindex="-1"><span class="emb sm">'+m.ch+'</span>'+m.name+'</h2>'+
+    '<p class="meta"><span id="stepTxt">'+stepText+'</span>'+lvl+'</p>'+inner+'</div>';
+}
+function dotsHTML(n,on){let s='';for(let i=0;i<n;i++)s+='<span class="'+(i<on?'on':'')+'"></span>';return '<div class="dots" aria-hidden="true">'+s+'</div>';}
+function doneCard(k,msg,rate){
+  markDone(k);
+  let r='';
+  if(rate){
+    if(!G.rated){
+      r='<div class="card" style="margin-top:1em"><p style="margin-top:0">剛剛做起來覺得怎麼樣？下次會依您的回答調整難度。</p><div class="row">'+
+        '<button class="btn ghost" data-act="rate" data-v="up">太輕鬆</button><button class="btn ghost" data-act="rate" data-v="ok">剛剛好</button><button class="btn ghost" data-act="rate" data-v="down">有點吃力</button></div></div>';
+    }else{
+      const t={up:'好的，下次會稍微增加一點。',ok:'好的，下次維持這個難度。',down:'好的，下次會放慢、放輕鬆一點。'}[G.rated];
+      r='<p class="fb">'+t+'</p>';
+    }
+  }
+  return shell(k,'完成了','<div class="card center"><p class="big">做得很好</p><p>'+msg+'</p><p class="muted">今天的「'+MODS[k].ch+'」練習已記錄。</p></div>'+r+
+    '<div class="row"><button class="btn" data-act="home">回首頁</button><button class="btn ghost" data-act="again">再做一次</button><button class="btn ghost" data-act="switch">換一種玩法</button></div>');
+}
+
+/* ---------- home and mode picker ---------- */
+function viewHome(){
+  const d=dayRec(new Date()),n=ORDER.filter(k=>d[k]).length;
+  const hr=new Date().getHours(),hello=hr<11?'早安':hr<17?'午安':'晚安';
+  const st=streak(),se=store.settings;
+  const pds=ORDER.map(k=>'<span class="pd'+(d[k]?' on':'')+'" style="--c:var('+MODS[k].c+')" title="'+MODS[k].ch+(d[k]?'：已完成':'：還沒做')+'"></span>').join('');
+  const tiles=ORDER.map(k=>{const m=MODS[k],done=!!d[k];
+    return '<button class="tile'+(done?' done':'')+'" style="--c:var('+m.c+')" data-act="open" data-v="'+k+'"><span class="emb">'+m.ch+'</span>'+
+      '<span><b>'+m.name+'</b><span class="d">'+m.desc+'</span><span class="pill'+(done?' on':'')+'">'+(done?'今天已完成 ✓':'開始練習')+'</span></span></button>';}).join('');
+  const sizeName={m:'標準',xl:'特大',tv:'電視'}[se.size]||'標準';
+  return '<header class="head"><h1>'+hello+'，一起靜心</h1>'+
+    '<p class="lead">今天想練習哪一項？選一項做約 5 分鐘就好。不計時，不比較，慢慢做。</p></header>'+
+    '<section class="today" aria-label="今天的進度"><div class="pds">'+pds+'</div><p><b>今天完成 '+n+' / 4</b>'+(st?'　已連續練習 '+st+' 天':'')+'</p></section>'+
+    '<div class="tiles home-tiles">'+tiles+'</div>'+
+    '<div class="settings" role="group" aria-label="設定">'+
+      '<button class="chip" data-act="set" data-v="size">字體：'+sizeName+'</button>'+
+      '<button class="chip" data-act="set" data-v="sound" aria-pressed="'+se.sound+'">提示音：'+(se.sound?'開':'關')+'</button>'+
+      '<button class="chip" data-act="set" data-v="music" aria-pressed="'+se.music+'">'+musicLabel(false)+'</button>'+
+      '<button class="chip" data-act="set" data-v="voice" aria-pressed="'+se.voice+'">語音朗讀：'+(se.voice?'開':'關')+'</button></div>'+
+    '<p class="note">這是日常保健用的練習，不能取代醫療。練習時請坐在穩固的椅子上；若感到頭暈、疼痛或不舒服，請立刻停下來休息，必要時請詢問醫師。用電視遙控器時，方向鍵移動、確認鍵選取、返回鍵回首頁。</p>';
+}
+function viewPicker(k){
+  const tiles=MODES[k].map(md=>'<button class="tile" style="--c:var('+MODS[k].c+')" data-act="mode" data-v="'+md.id+'"><span class="emb">'+md.ch+'</span>'+
+    '<span><b>'+md.name+'</b><span class="d">'+md.desc+'</span><span class="pill">難度：'+LV[getLv(k+'.'+md.id)-1]+'</span></span></button>').join('');
+  return shell(k,'選一種玩法','<p class="lead">每種約 5 分鐘，難度會依您的表現自動調整。</p><div class="tiles">'+tiles+'</div>');
+}
+
+/* ---------- 身 ---------- */
+const PHS={1:[3,1,4],2:[4,2,6],3:[5,2,7]};
+const ROUNDS={sit:[3,4,5],stand:[3,4,4],breath:[5,7,9]};
+const SIT=[
+  {name:'肩膀畫圈',how:'雙手輕放膝蓋。肩膀往上、往後、再放下，畫一個大圈。動作放慢，不用用力。'},
+  {name:'手臂上舉',how:'吸氣時，雙手慢慢舉高；吐氣時，慢慢放下。舉到舒服的高度就好，不必舉過頭頂。'},
+  {name:'手腕轉圈',how:'雙手向前伸出，握拳，慢慢轉動手腕，往內轉一圈、再往外轉一圈。'},
+  {name:'頭部側傾',how:'背挺直，頭慢慢往右側傾，像耳朵靠向肩膀，停一下再回正，換左邊。不要用力拉。'},
+  {name:'握拳放開',how:'雙手放在腿上，慢慢握緊拳頭，再慢慢張開手指，感覺手掌的力量。'}];
+const STAND=[
+  {name:'踮腳尖',how:'雙手扶穩椅背，腳跟慢慢抬起，停一下，再慢慢放下。'},
+  {name:'原地慢踏步',how:'雙手扶穩椅背，一腳抬起再放下，換另一腳。動作放慢，抬一點點就好。'},
+  {name:'側抬腿',how:'雙手扶穩椅背，一隻腳慢慢往旁邊抬起一點點，再放回，兩腳輪流。'},
+  {name:'坐下再站起',how:'坐在椅子前緣，雙腳踩穩，身體微微前傾，慢慢站起，再慢慢坐下。'}];
+function phases(){const p=PHS[getLv(G.key)];return [
+  {t:'慢慢吸氣',say:'吸氣',s:p[0],k:1,f:392},{t:'停一停',say:'停一停',s:p[1],k:1,f:0},{t:'慢慢吐氣',say:'吐氣',s:p[2],k:.5,f:262}];}
+const rounds=()=>ROUNDS[G.mode][getLv(G.key)-1];
+const movesList=()=>(G.mode==='sit'?SIT:STAND).slice(0,[3,4,5][getLv(G.key)-1]);
+const repsEach=()=>[3,5,6][getLv(G.key)-1];
+function viewBody(){
+  if(G.step==='intro'){
+    const intro=G.mode==='stand'
+      ?'<p>請站在牆邊或穩固的椅子旁，一手或兩手扶穩，旁邊最好有人。覺得不穩，就改成坐著做。</p>'
+      :'<p>請先坐在穩固的椅子上，背部輕靠椅背，雙腳踩穩地面，雙手放在膝蓋上。</p>';
+    const li=G.mode==='breath'?'<li>跟著圓圈慢慢呼吸 '+rounds()+' 輪</li>':'<li>先跟著圓圈呼吸 '+rounds()+' 輪</li><li>再做 '+movesList().length+' 個小動作，每個 '+repsEach()+' 次</li>';
+    return shell('body','準備','<div class="card">'+intro+'<ul class="plain">'+li+'</ul><p class="muted">如果頭暈或不舒服，請隨時停下來休息。</p></div><button class="btn wide" data-act="bStart">開始呼吸</button>');
+  }
+  if(G.step==='breath')return shell('body','第 1 / '+rounds()+' 輪',
+    '<div class="orb"><div class="ring"></div><div class="core" id="orb"></div></div>'+
+    '<p class="phase" id="phase" aria-live="polite">請稍等…</p><p class="count" id="count"></p>'+
+    '<p class="muted center">圓圈變大時吸氣，變小時吐氣。用鼻子吸氣，嘴巴慢慢吐氣。</p>');
+  if(G.step==='moves'){
+    const list=movesList(),m=list[G.mi],last=G.mi===list.length-1,n=repsEach(),done=G.reps>=n;
+    return shell('body','動作 '+(G.mi+1)+' / '+list.length,
+      '<div class="card"><h3>'+m.name+'</h3><p>'+m.how+'</p>'+dotsHTML(n,G.reps)+'<p class="center"><b>已做 '+G.reps+' / '+n+' 次</b></p></div>'+
+      '<button class="btn wide" data-act="'+(done?'bNext':'bRep')+'">'+(done?(last?'完成所有動作':'下一個動作'):'我做了一次')+'</button>');
+  }
+  return doneCard('body','呼吸'+(G.mode==='breath'?'':'和伸展')+'都完成了。請喝一小口溫水，感覺一下身體現在的輕鬆。',true);
+}
+function startBreath(){
+  const orb=$('orb');if(!orb)return;
+  orb.style.transition='none';orb.style.transform='scale(.5)';
+  later(()=>phaseRun(1,0),900);
+}
+function phaseRun(r,p){
+  if(r>rounds()){
+    if(G.mode==='breath'){advance('done');}else{G.mi=0;G.reps=0;advance('moves');}
+    return;
+  }
+  const PH=phases(),ph=PH[p],orb=$('orb');if(!orb)return;
+  $('stepTxt').textContent='第 '+r+' / '+rounds()+' 輪';
+  $('phase').textContent=ph.t;
+  orb.style.transition=REDUCE?'none':'transform '+ph.s+'s ease-in-out';
+  orb.style.transform='scale('+ph.k+')';
+  tone(ph.f,.8,.08);speak(ph.say);
+  $('count').textContent=ph.s;
+  for(let i=1;i<=ph.s;i++)later(()=>{
+    if(i<ph.s)$('count').textContent=ph.s-i;
+    else if(p+1<PH.length)phaseRun(r,p+1);
+    else phaseRun(r+1,0);
+  },i*1000);
+}
+
+/* ---------- 心 ---------- */
+const WEATHER=[
+  {k:'晴朗',d:'心裡很明亮',m:'真好。請把這份明亮的感覺留在心裡。'},
+  {k:'微風',d:'輕鬆自在',m:'輕鬆自在最舒服，請多享受一下。'},
+  {k:'多雲',d:'還不錯，有點平淡',m:'平平淡淡也很好，是一個安穩的日子。'},
+  {k:'陰天',d:'有點沉重',m:'有點沉重的時候，先讓身體放鬆一點。'},
+  {k:'小雨',d:'有點想念或難過',m:'想念和難過都很自然，讓自己慢慢呼吸。'},
+  {k:'雷雨',d:'煩躁或擔心',m:'煩躁或擔心時，先慢慢吐氣，把肩膀放下來。'}];
+const SCAN=[
+  {n:'頭和臉',t:'把注意力放在頭頂和臉。讓額頭、眼睛、嘴角都放鬆。'},
+  {n:'脖子和肩膀',t:'讓肩膀輕輕往下沉，脖子不用出力。'},
+  {n:'雙手',t:'感覺手指和手掌的溫度，讓手自然放在膝蓋上。'},
+  {n:'胸口和肚子',t:'感覺呼吸時胸口和肚子輕輕起伏，不用刻意控制。'},
+  {n:'背和腰',t:'讓背輕輕靠著椅背，把重量交給椅子。'},
+  {n:'雙腿',t:'感覺大腿和小腿的重量，讓它們放鬆。'},
+  {n:'雙腳',t:'感覺腳底踩在地上，穩穩的。'}];
+const SCAN_IDX={1:[0,1,3,6],2:[0,1,2,3,5,6],3:[0,1,2,3,4,5,6]};
+const THANKS=['家人','朋友','健康','三餐溫飽','今天的好天氣','美好的回憶','今天的平安','節慶的團圓'];
+function viewMind(){
+  if(G.mode==='weather'){
+    if(G.step==='pick'){
+      const o=WEATHER.map((w,i)=>'<button class="opt" data-act="mW" data-v="'+i+'" aria-pressed="'+(G.w===i)+'">'+w.k+'<small>'+w.d+'</small></button>').join('');
+      return shell('mind','第 1 / 2 步','<div class="card"><p style="margin:0">先停一下。此刻您的心情，像哪一種天氣？沒有對錯，選最接近的就好。</p></div>'+
+        '<div class="grid2 stack">'+o+'</div><button class="btn wide" data-act="mNext"'+(G.w===null?' disabled':'')+'>下一步</button>');
+    }
+    if(G.step==='breath'){
+      const n=[2,3,4][getLv(G.key)-1],done=G.n>=n;
+      return shell('mind','第 2 / 2 步','<div class="card"><p style="margin:0">「'+WEATHER[G.w].k+'」。'+WEATHER[G.w].m+'</p></div>'+
+        '<div class="card" style="margin-top:.8em"><p style="margin-top:0">請做 '+n+' 次慢呼吸：慢慢吸氣，再慢慢吐氣。每做完一次，就按一下。</p>'+dotsHTML(n,G.n)+'</div>'+
+        '<button class="btn wide" data-act="'+(done?'mNext':'mBreath')+'">'+(done?'完成':'我做了一次慢呼吸')+'</button>');
+    }
+    return doneCard('mind','您今天的心情是「'+WEATHER[G.w].k+'」，也慢慢呼吸了 '+G.n+' 次。把這份平靜帶著，接下來的時間會更輕鬆。',true);
+  }
+  if(G.mode==='scan'){
+    if(G.step==='go'){
+      const idx=SCAN_IDX[getLv(G.key)],p=SCAN[idx[G.i]],last=G.i===idx.length-1;
+      return shell('mind','第 '+(G.i+1)+' / '+idx.length+' 處',
+        '<div class="orb"><div class="ring"></div><div class="core pulse" id="orb"></div></div>'+
+        '<div class="card" style="margin-top:.8em"><h3>'+p.n+'</h3><p style="margin:0">'+p.t+'</p></div>'+
+        '<p class="muted center">圓圈慢慢變大時吸氣，變小時吐氣。準備好了再按下一處。</p>'+
+        '<button class="btn wide" data-act="sNext">'+(last?'完成':'好了，下一處')+'</button>');
+    }
+    return doneCard('mind','從頭到腳都放鬆過一遍了。',true);
+  }
+  if(G.step==='pick'){
+    const need=getLv(G.key);
+    const t=THANKS.map((x,i)=>'<button class="opt" data-act="mT" data-v="'+i+'" aria-pressed="'+(G.t.indexOf(i)>=0)+'">'+x+'</button>').join('');
+    return shell('mind','選 '+need+' 件以上','<div class="card"><p style="margin:0">今天有哪些人事物，值得說一聲謝謝？請選至少 '+need+' 個，並在心裡對它們說謝謝。</p></div>'+
+      '<div class="grid2 stack">'+t+'</div><button class="btn wide" data-act="mNext"'+(G.t.length>=need?'':' disabled')+'>完成</button>');
+  }
+  return doneCard('mind','您感謝了「'+G.t.map(i=>THANKS[i]).join('、')+'」。把這份感謝帶著，心會更踏實。',true);
+}
+
+/* ---------- 腦：燈號記憶 ---------- */
+const PADS=[{n:'紅',f:262},{n:'黃',f:330},{n:'藍',f:392},{n:'綠',f:523}];
+const SEQ_ROUNDS=5;
+function newSeq(){const s=[];for(let i=0;i<G.len;i++)s.push(Math.floor(Math.random()*4));G.seq=s;G.pos=0;}
+function padsHTML(live){return '<div class="pads'+(live?' live':'')+'">'+PADS.map((p,i)=>'<button class="pad p'+i+'" id="pad'+i+'" data-act="pad" data-v="'+i+'">'+p.n+'</button>').join('')+'</div>';}
+function viewSeq(){
+  if(G.step==='intro')return shell('brain','準備','<div class="card"><p style="margin:0">四個顏色會依序亮起。請記住順序，等燈亮完，再照同樣的順序按一按。</p>'+
+    '<ul class="plain"><li>共 '+SEQ_ROUNDS+' 回合，順序會依您的表現調整長短</li><li>按錯沒關係，可以再看一次</li><li>沒有時間限制</li></ul></div><button class="btn wide" data-act="brStart">開始</button>');
+  if(G.step==='done')return doneCard('brain','您完成了 '+SEQ_ROUNDS+' 個回合，最長記住了 '+G.best+' 個順序。');
+  const head='第 '+(G.round+1)+' / '+SEQ_ROUNDS+' 回合';
+  if(G.step==='watch')return shell('brain',head,'<p class="status">請看，記住燈亮的順序（共 '+G.seq.length+' 個）</p>'+padsHTML(false));
+  if(G.step==='input'||G.step==='lock')return shell('brain',head,'<p class="status" id="st">輪到您了，請照順序按（已按 '+G.pos+' / '+G.seq.length+'）</p>'+padsHTML(G.step==='input'));
+  if(G.step==='ok')return shell('brain',head,'<p class="status">答對了！記得很清楚。</p>'+padsHTML(false)+
+    '<button class="btn wide" data-act="brNext">'+(G.round===SEQ_ROUNDS-1?'完成':'下一回合')+'</button>');
+  const skip=G.fails>=2;
+  return shell('brain',head,'<p class="status">'+(skip?'沒關係，我們換短一點的。':'差一點，沒關係。我們再看一次。')+'</p>'+padsHTML(false)+
+    '<button class="btn wide" data-act="'+(skip?'brSkip':'brAgain')+'">'+(skip?'換一題':'再看一次')+'</button>');
+}
+function light(i,ms){const el=$('pad'+i);if(!el)return;el.classList.add('lit');tone(PADS[i].f,.5,.12);later(()=>el.classList.remove('lit'),ms);}
+function playSeq(){
+  const s=G.seq;
+  s.forEach((v,i)=>later(()=>light(v,650),900+i*1000));
+  later(()=>{G.pos=0;advance('input');},900+s.length*1000);
+}
+function seqNextRound(){
+  if(G.round>=SEQ_ROUNDS-1){advance('done');return;}
+  G.round++;G.fails=0;newSeq();advance('watch');
+}
+
+/* ---------- 腦：節慶配對 ---------- */
+const PAIRS=[
+  {a:'粽子',b:'端午節'},{a:'月餅',b:'中秋節'},{a:'紅包',b:'春節'},
+  {a:'湯圓',b:'冬至'},{a:'花燈',b:'元宵節'},{a:'潤餅',b:'清明節'}];
+function initMatch(){
+  const n=[2,3,5][getLv(G.key)-1];
+  const ps=shuffle(PAIRS).slice(0,n);
+  const cards=[];ps.forEach((p,i)=>{cards.push({id:i,t:p.a,s:'down'});cards.push({id:i,t:p.b,s:'down'});});
+  G.cards=shuffle(cards);G.sel=[];G.lock=false;G.peek=false;G.miss=0;G.n=n;
+}
+function viewMatch(){
+  if(G.step==='intro')return shell('brain','準備','<div class="card"><p style="margin:0">每個節慶，都有它的食物或習俗。請翻開兩張牌，如果能配成一對，牌就會留下來。</p>'+
+    '<ul class="plain"><li>例如「粽子」和「端午節」是一對</li><li>忘記位置可以按「看一眼全部」</li><li>沒有時間限制</li></ul></div><button class="btn wide" data-act="mtStart">開始</button>');
+  if(G.step==='done')return doneCard('brain','您把 '+G.n+' 組節慶都配對成功了。');
+  const okN=G.cards.filter(c=>c.s==='ok').length/2;
+  const cs=G.cards.map((c,i)=>{
+    const face=c.s!=='down'||G.peek;
+    const cls='mc '+(c.s==='ok'?'ok':face?'up':'down');
+    return '<button class="'+cls+'" data-act="card" data-v="'+i+'">'+(c.s==='ok'?'✓ '+c.t:face?c.t:'？')+'</button>';}).join('');
+  return shell('brain','已配對 '+okN+' / '+G.n,'<div class="cards">'+cs+'</div>'+
+    '<button class="btn ghost wide" data-act="peek"'+(G.lock||G.peek?' disabled':'')+'>看一眼全部</button>');
+}
+
+/* ---------- 腦：記物品 ---------- */
+const THINGS=['茶壺','雨傘','眼鏡','藥盒','月餅','粽子','紅包','燈籠','拐杖','毛巾','帽子','鑰匙','柚子','湯圓','扇子','水壺','剪刀','鞋子','掃把','筷子'];
+const ITEM_ROUNDS=3;
+function newItems(){
+  const n=[3,4,5][getLv(G.key)-1];
+  const all=shuffle(THINGS);
+  G.target=all.slice(0,n);G.opts=shuffle(all.slice(0,n*2));G.sel=[];G.n=n;
+}
+function viewItems(){
+  if(G.step==='done')return doneCard('brain','三輪都完成了，您每輪都認真看、認真想。');
+  const head='第 '+(G.round+1)+' / '+ITEM_ROUNDS+' 輪';
+  if(G.step==='memo')return shell('brain',head,'<div class="card"><p style="margin:0">請看這 '+G.n+' 樣東西，在心裡記一記。準備好了再按「我記住了」。</p></div>'+
+    '<div class="words">'+G.target.map(t=>'<span class="word">'+t+'</span>').join('')+'</div><button class="btn wide" data-act="itGo">我記住了</button>');
+  if(G.step==='choose'){
+    const o=G.opts.map(t=>'<button class="opt" data-act="itPick" data-v="'+t+'" aria-pressed="'+(G.sel.indexOf(t)>=0)+'">'+t+'</button>').join('');
+    return shell('brain',head,'<div class="card"><p style="margin:0">剛剛看到的是哪 '+G.n+' 樣？請選出來（已選 '+G.sel.length+' / '+G.n+'）。</p></div>'+
+      '<div class="grid2">'+o+'</div><button class="btn wide" data-act="itCheck"'+(G.sel.length===G.n?'':' disabled')+'>確認</button>');
+  }
+  const right=G.sel.filter(t=>G.target.indexOf(t)>=0).length;
+  const o=G.opts.map(t=>{
+    const inT=G.target.indexOf(t)>=0,ch=G.sel.indexOf(t)>=0;
+    if(inT&&ch)return '<button class="opt right" disabled>✓ '+t+'</button>';
+    if(inT)return '<button class="opt miss" disabled>'+t+'<small>剛剛有這個</small></button>';
+    if(ch)return '<button class="opt sel" disabled>'+t+'<small>剛剛沒有這個</small></button>';
+    return '<button class="opt" disabled>'+t+'</button>';}).join('');
+  return shell('brain',head,'<p class="fb" style="margin-top:0">您記對了 '+right+' 樣。'+(right===G.n?'全部都記得，很棒！':'已經很不錯，我們繼續。')+'</p>'+
+    '<div class="grid2">'+o+'</div><button class="btn wide" data-act="itNext">'+(G.round===ITEM_ROUNDS-1?'完成':'下一輪')+'</button>');
+}
+
+/* ---------- 知 ---------- */
+const FEST=[
+  {l:1,q:'端午節，大家會吃什麼？',o:['粽子','月餅','湯圓','年糕'],h:'用葉子包起來的米食。'},
+  {l:1,q:'中秋節晚上，大家會一起賞什麼？',o:['月亮','太陽','彩虹','閃電'],h:'中秋夜的天空又圓又亮。'},
+  {l:1,q:'過年時，長輩會包什麼給小孩？',o:['紅包','雨傘','毛巾','鑰匙'],h:'紅色的小袋子，裡面有祝福。'},
+  {l:1,q:'正月十五元宵節，常吃的白白圓圓食物是？',o:['湯圓','粽子','月餅','燒餅'],h:'煮在甜湯裡，圓圓的。'},
+  {l:1,q:'過年時，大門口會貼什麼？',o:['春聯','雨傘','地圖','報紙'],h:'紅紙上寫著吉祥話。'},
+  {l:2,q:'端午節有一項很有名的比賽是？',o:['划龍舟','賽跑','跳繩','游泳接力'],h:'在河上，大家一起用力划船。'},
+  {l:2,q:'中秋節是農曆幾月十五？',o:['八月','五月','正月','十二月'],h:'「八月十五月兒圓」。'},
+  {l:2,q:'正月十五元宵節，大家會做什麼？',o:['賞花燈','掃墓','划龍舟','吃月餅'],h:'夜晚街上有很多亮亮的燈。'},
+  {l:2,q:'清明節，家人常會一起去做什麼？',o:['掃墓祭祖','放天燈','賞月','划龍舟'],h:'懷念過世的親人。'},
+  {l:2,q:'重陽節（農曆九月初九）在臺灣也是什麼節？',o:['敬老節','兒童節','勞動節','婦女節'],h:'這一天要特別關心長輩。'},
+  {l:2,q:'冬至這一天，哪一個最長？',o:['夜晚','白天','下午','中午'],h:'冬天白天最短。'},
+  {l:3,q:'端午節是農曆幾月初五？',o:['五月','三月','七月','九月'],h:'「五月五，是端陽」。'},
+  {l:3,q:'「月到中秋分外明」說的是哪一個節日？',o:['中秋節','端午節','清明節','重陽節'],h:'這句話在說月亮特別明亮。'},
+  {l:3,q:'端午節常掛在門口、據說能驅邪的植物是？',o:['艾草','玫瑰','蓮花','菊花'],h:'它有特別的香味。'},
+  {l:3,q:'除夕是在哪一天？',o:['農曆年的最後一天','正月初一','八月十五','五月初五'],h:'吃團圓飯、守歲的那一晚。'},
+  {l:3,q:'「爆竹一聲除舊歲」常在哪一個節日聽到？',o:['春節','中秋節','端午節','清明節'],h:'送走舊的一年，迎接新年。'}];
+const HEALTH=[
+  {l:1,q:'吃飯前，要先做什麼？',o:['洗手','看電視','睡覺','出門'],h:'手上有看不見的細菌。'},
+  {l:1,q:'下雨天出門，要帶什麼？',o:['雨傘','太陽眼鏡','風箏','拖把'],h:'可以擋雨。'},
+  {l:1,q:'天氣很熱，在太陽下走路要戴什麼？',o:['帽子','手套','圍巾','毛衣'],h:'可以遮住太陽。'},
+  {l:1,q:'出門前，要確認關好什麼？',o:['瓦斯爐','窗簾','電視櫃','拖鞋'],h:'沒關好會有危險。'},
+  {l:1,q:'起床後，先喝一杯什麼最好？',o:['溫開水','汽水','啤酒','濃咖啡'],h:'最簡單也最溫和。'},
+  {l:2,q:'醫師開的藥，要怎麼吃？',o:['照醫師說的時間和份量','想到才吃','感覺好了就停','一次多吃一點'],h:'醫師和藥師會交代清楚。'},
+  {l:2,q:'哪一種鞋子走路比較安全？',o:['防滑又合腳的鞋','很滑的拖鞋','高跟鞋','太大的鞋'],h:'不容易滑倒。'},
+  {l:2,q:'浴室地板濕濕的，怎麼做比較不會跌倒？',o:['擦乾並鋪防滑墊','快步跑過去','閉著眼睛走','不用管它'],h:'地板乾、不滑最安全。'},
+  {l:2,q:'換季忽冷忽熱，怎麼穿比較好？',o:['一層一層，可以穿脫','只穿一件很厚的','都不穿外套','越多越好'],h:'熱了脫、冷了穿。'},
+  {l:2,q:'下面哪一個是好的蛋白質來源？',o:['豆腐','白糖','汽水','餅乾'],h:'用黃豆做的。'},
+  {l:2,q:'藥盒有早、中、晚三格，兩天總共有幾格？',o:['6 格','4 格','5 格','8 格'],h:'3 加 3。'},
+  {l:3,q:'早上醒來，為什麼要先坐一下再慢慢站起來？',o:['避免頭暈跌倒','比較好看','省電','叫醒鄰居'],h:'突然站起來，頭可能會暈。'},
+  {l:3,q:'「少油、少鹽、少糖」主要是為了照顧什麼？',o:['血壓、血脂和血糖','頭髮','指甲','鞋子'],h:'這三樣吃太多，血管負擔大。'},
+  {l:3,q:'買 3 顆蘋果，每顆 25 元，付 100 元，要找多少錢？',o:['25 元','35 元','45 元','75 元'],h:'先算 25 乘 3，再用 100 減。'},
+  {l:3,q:'一個星期有 7 天，已過了 3 天，還剩幾天？',o:['4 天','3 天','5 天','10 天'],h:'7 減 3。'},
+  {l:3,q:'一天大約睡幾個小時比較合適？',o:['7 到 8 小時','2 到 3 小時','12 小時以上','整天都睡'],h:'不太少也不太多。'}];
+const ORDERS=[
+  {l:1,n:'泡茶',s:['燒開水','沖入茶壺','倒進茶杯']},
+  {l:1,n:'過年',s:['除夕團圓飯','守歲','初一拜年']},
+  {l:1,n:'洗手',s:['抹肥皂','搓洗雙手','沖水']},
+  {l:2,n:'吃藥',s:['看清楚藥袋','倒一杯溫開水','把藥放進口中','喝水吞下']},
+  {l:2,n:'煮飯',s:['洗米','加水','按下開關','等飯煮熟']},
+  {l:2,n:'看醫生',s:['掛號','等候叫號','看診','領藥']},
+  {l:3,n:'包粽子',s:['泡好糯米','鋪好粽葉','放入餡料','綁緊粽子','放進鍋中蒸煮']},
+  {l:3,n:'洗手',s:['打濕雙手','抹肥皂','搓洗雙手','沖水','擦乾']},
+  {l:3,n:'煮湯圓',s:['揉好糯米團','搓成小圓','水煮滾','放入湯圓','浮起後盛碗']}];
+function pickFrom(bank){
+  const lv=getLv(G.key);
+  let pool=bank.filter(q=>G.used.indexOf(q)<0);
+  const same=pool.filter(q=>q.l===lv);
+  if(same.length)pool=same;
+  else pool.sort((a,b)=>Math.abs(a.l-lv)-Math.abs(b.l-lv));
+  const q=same.length?pool[Math.floor(Math.random()*pool.length)]:pool[0];
+  G.used.push(q);return q;
+}
+function nextQ(){
+  const q=pickFrom(G.mode==='fest'?FEST:HEALTH);
+  G.q={q:q.q,a:q.o[0],opts:shuffle(q.o),h:q.h};G.ok=false;G.picked=null;G.first=true;
+}
+function nextOrder(){
+  const s=pickFrom(ORDERS);
+  G.seq=s;G.items=shuffle(s.s.map((_,i)=>i));G.placed=[];G.miss=0;G.fb='';
+}
+function viewMC(){
+  if(G.step==='done')return doneCard('cog','5 題都完成了。動腦就像散步，每天一點點最有效。');
+  const q=G.q;
+  const opts=q.opts.map((o,i)=>{
+    const cls='opt'+(G.ok&&o===q.a?' right':(G.picked===o&&!G.ok?' sel':''));
+    return '<button class="'+cls+'" data-act="ans" data-v="'+i+'"'+(G.ok?' disabled':'')+'>'+o+'</button>';}).join('');
+  let fb='';
+  if(G.ok)fb='<p class="fb">答對了，答案是「'+q.a+'」。</p>';
+  else if(G.picked!==null)fb='<p class="fb">再想一想：'+q.h+'可以再選一次。</p>';
+  return shell('cog','第 '+(G.n+1)+' / 5 題','<div class="card"><p style="margin:0;font-weight:700">'+q.q+'</p></div>'+
+    '<div class="grid2 stack">'+opts+'</div>'+fb+
+    (G.ok?'<button class="btn wide" data-act="cNext">'+(G.n===4?'完成':'下一題')+'</button>':''));
+}
+function viewOrder(){
+  if(G.step==='done')return doneCard('cog','3 組步驟都排好了。生活中的事，一步一步來就不會亂。');
+  const s=G.seq,all=G.placed.length===s.s.length;
+  const placed=G.placed.map(i=>'<li>'+s.s[i]+'</li>').join('');
+  const rest=G.items.filter(i=>G.placed.indexOf(i)<0).map(i=>'<button class="opt" data-act="oPick" data-v="'+i+'">'+s.s[i]+'</button>').join('');
+  return shell('cog','第 '+(G.n+1)+' / 3 組','<div class="card"><p style="margin:0;font-weight:700">「'+s.n+'」要怎麼做？請照順序，一個一個點。</p>'+
+    (placed?'<ol class="ol">'+placed+'</ol>':'')+'</div>'+
+    (all?'<p class="fb">排好了，順序完全正確。</p><button class="btn wide" data-act="oNext">'+(G.n===2?'完成':'下一組')+'</button>'
+        :'<div class="grid2 stack">'+rest+'</div>'+(G.fb?'<p class="fb">'+G.fb+'</p>':'')));
+}
+
+/* ---------- router ---------- */
+const VIEWS={
+  'body.sit':viewBody,'body.stand':viewBody,'body.breath':viewBody,
+  'mind.weather':viewMind,'mind.scan':viewMind,'mind.thanks':viewMind,
+  'brain.seq':viewSeq,'brain.match':viewMatch,'brain.items':viewItems,
+  'cog.fest':viewMC,'cog.health':viewMC,'cog.order':viewOrder
+};
+function initMode(k,id){
+  const g={mode:id,key:k+'.'+id,step:'intro',up:0,dn:0};
+  if(k==='body'){g.mi=0;g.reps=0;g.rated=null;}
+  if(k==='mind'){g.rated=null;
+    if(id==='weather'){g.step='pick';g.w=null;g.n=0;}
+    if(id==='scan'){g.step='go';g.i=0;}
+    if(id==='thanks'){g.step='pick';g.t=[];}}
+  if(id==='seq'){g.round=0;g.len=0;g.seq=[];g.pos=0;g.fails=0;g.best=0;}
+  if(id==='match'){g.cards=[];}
+  if(id==='items'){g.round=0;}
+  if(id==='fest'||id==='health'){g.step='q';g.used=[];g.n=0;}
+  if(id==='order'){g.step='q';g.used=[];g.n=0;}
+  return g;
+}
+function startMode(k,id){
+  stopAll();G=initMode(k,id);
+  if(id==='fest'||id==='health')nextQ();
+  if(id==='order')nextOrder();
+  if(id==='match')initMatch();
+  if(id==='items'){newItems();G.step='memo';}
+  render();scrollTop();
+}
+function advance(s){G.step=s;render();scrollTop();}
+function render(){
+  const ae=document.activeElement;let sig=null;
+  if(ae&&app.contains(ae)&&ae.dataset&&ae.dataset.act)sig=[ae.dataset.act,ae.dataset.v];
+  app.innerHTML=current==='home'?viewHome():(!G.mode?viewPicker(current):VIEWS[current+'.'+G.mode]());
+  let el=null;
+  if(sig)el=Array.from(app.querySelectorAll('[data-act]')).find(x=>x.dataset.act===sig[0]&&x.dataset.v===sig[1]&&!x.disabled);
+  if(!el&&kb)el=app.querySelector('.btn.wide:not(:disabled)')||app.querySelector('.tile')||app.querySelector('.opt:not(:disabled)')||app.querySelector('button:not(:disabled)');
+  if(el){try{el.focus({preventScroll:true});}catch(e){}}
+  if(current==='body'&&G.step==='breath')startBreath();
+  if(current==='brain'&&G.mode==='seq'&&G.step==='watch')playSeq();
+  if(current==='cog'&&(G.mode==='fest'||G.mode==='health')&&G.step==='q'&&!G.ok&&G.picked===null)speak(G.q.q);
+  if(current==='mind'&&G.mode==='scan'&&G.step==='go')speak(SCAN[SCAN_IDX[getLv(G.key)][G.i]].t);
+}
+function enter(view){
+  stopAll();current=view;G={mode:null};render();scrollTop();
+  const h=app.querySelector('h1,h2');if(h){h.setAttribute('tabindex','-1');if(!kb){try{h.focus({preventScroll:true});}catch(e){}}}
+}
+function updateMusicButtons(){
+  document.querySelectorAll('[data-act="set"][data-v="music"]').forEach(b=>{
+    b.textContent=musicLabel(!!b.dataset.s);b.setAttribute('aria-pressed',String(store.settings.music));});
+}
+
+app.addEventListener('click',e=>{
+  const t=e.target.closest('[data-act]');if(!t||t.disabled)return;
+  if(store.settings.music&&!music)musicOn();
+  const a=t.getAttribute('data-act'),v=t.getAttribute('data-v');
+  switch(a){
+    case 'open':enter(v);break;
+    case 'home':enter('home');break;
+    case 'mode':startMode(current,v);break;
+    case 'again':startMode(current,G.mode);break;
+    case 'switch':stopAll();G={mode:null};render();scrollTop();break;
+    case 'rate':{
+      const lv=getLv(G.key);G.rated=v;
+      if(v==='up')setLv(G.key,lv+1);else if(v==='down')setLv(G.key,lv-1);
+      render();break;}
+    case 'set':
+      if(v==='size'){store.settings.size={m:'xl',xl:'tv',tv:'m'}[store.settings.size]||'xl';applySize();persist();render();break;}
+      store.settings[v]=!store.settings[v];
+      if(v==='sound'&&store.settings.sound)tone(392,.4,.1);
+      if(v==='voice'&&store.settings.voice)speak('語音朗讀已開啟');
+      if(v==='music'){if(store.settings.music)musicOn();else musicOff();persist();updateMusicButtons();break;}
+      persist();render();break;
+    /* body */
+    case 'bStart':tone(392,.4,.1);advance('breath');break;
+    case 'bRep':G.reps++;tone(330+G.reps*30,.3,.1);render();break;
+    case 'bNext':
+      if(G.mi===movesList().length-1)advance('done');else{G.mi++;G.reps=0;render();scrollTop();}
+      break;
+    /* mind */
+    case 'mW':G.w=Number(v);tone(330,.3,.08);render();break;
+    case 'mBreath':G.n++;tone(262,.8,.08);render();break;
+    case 'mT':{const ix=Number(v),p=G.t.indexOf(ix);if(p>=0)G.t.splice(p,1);else G.t.push(ix);tone(392,.3,.08);render();break;}
+    case 'mNext':advance(G.mode==='weather'&&G.step==='pick'?'breath':'done');break;
+    case 'sNext':
+      if(G.i>=SCAN_IDX[getLv(G.key)].length-1)advance('done');else{G.i++;render();scrollTop();}
+      break;
+    /* brain: sequence */
+    case 'brStart':G.round=0;G.fails=0;G.len=[2,3,4][getLv(G.key)-1];newSeq();advance('watch');break;
+    case 'brAgain':G.pos=0;advance('watch');break;
+    case 'brSkip':adapt(false);G.len=Math.max(2,G.len-1);seqNextRound();break;
+    case 'brNext':seqNextRound();break;
+    case 'pad':{
+      if(G.step!=='input')return;
+      const i=Number(v);light(i,350);
+      if(i===G.seq[G.pos]){
+        G.pos++;
+        if(G.pos===G.seq.length){
+          G.step='lock';
+          later(()=>{G.best=Math.max(G.best,G.seq.length);adapt(G.fails===0);if(G.fails===0)G.len=Math.min(6,G.len+1);advance('ok');tone(523,.5,.1);},800);
+        }else{const st=$('st');if(st)st.textContent='輪到您了，請照順序按（已按 '+G.pos+' / '+G.seq.length+'）';}
+      }else{G.fails++;G.step='lock';later(()=>advance('retry'),600);}
+      break;}
+    /* brain: match */
+    case 'mtStart':advance('play');break;
+    case 'card':{
+      const i=Number(v),c=G.cards[i];
+      if(G.lock||G.peek||c.s!=='down')return;
+      c.s='up';G.sel.push(i);tone(392,.2,.08);
+      if(G.sel.length===2){
+        const x=G.cards[G.sel[0]],y=G.cards[G.sel[1]];
+        if(x.id===y.id){
+          x.s='ok';y.s='ok';G.sel=[];tone(523,.5,.1);
+          if(G.cards.every(z=>z.s==='ok')){
+            const lv=getLv(G.key);
+            if(G.miss<=1)setLv(G.key,lv+1);else if(G.miss>=G.n*2)setLv(G.key,lv-1);
+            render();later(()=>advance('done'),900);return;
+          }
+          render();
+        }else{
+          G.miss++;G.lock=true;render();
+          later(()=>{G.cards[G.sel[0]].s='down';G.cards[G.sel[1]].s='down';G.sel=[];G.lock=false;render();},1400);
+        }
+      }else render();
+      break;}
+    case 'peek':G.peek=true;render();later(()=>{G.peek=false;render();},2500);break;
+    /* brain: items */
+    case 'itGo':advance('choose');break;
+    case 'itPick':{
+      const p=G.sel.indexOf(v);
+      if(p>=0)G.sel.splice(p,1);else if(G.sel.length<G.n)G.sel.push(v);
+      tone(392,.2,.08);render();break;}
+    case 'itCheck':{
+      const right=G.sel.filter(x=>G.target.indexOf(x)>=0).length;
+      adapt(right===G.n);tone(right===G.n?523:330,.5,.1);advance('result');break;}
+    case 'itNext':
+      if(G.round>=ITEM_ROUNDS-1)advance('done');else{G.round++;newItems();advance('memo');}
+      break;
+    /* cognition: multiple choice */
+    case 'ans':{
+      const q=G.q,o=q.opts[Number(v)];G.picked=o;
+      if(o===q.a){G.ok=true;adapt(G.first);tone(523,.5,.1);speak('答對了');}
+      else{if(G.first){G.first=false;adapt(false);}tone(220,.4,.06);}
+      render();break;}
+    case 'cNext':
+      if(G.n>=4)advance('done');else{G.n++;nextQ();render();scrollTop();}
+      break;
+    /* cognition: ordering */
+    case 'oPick':{
+      const i=Number(v);
+      if(i===G.placed.length){G.placed.push(i);G.fb='';tone(392+G.placed.length*40,.3,.1);
+        if(G.placed.length===G.seq.s.length){adapt(G.miss===0);tone(523,.5,.1);}}
+      else{G.miss++;G.fb='再想一想，第 '+(G.placed.length+1)+' 步會是什麼？';tone(220,.4,.06);}
+      render();break;}
+    case 'oNext':
+      if(G.n>=2)advance('done');else{G.n++;nextOrder();render();scrollTop();}
+      break;
+  }
+});
+
+/* ---------- keyboard / TV remote ---------- */
+document.addEventListener('keydown',e=>{
+  kb=true;
+  if((e.key==='Escape'||e.key==='Backspace')&&current!=='home'){e.preventDefault();enter('home');return;}
+  const dirs={ArrowRight:[1,0],ArrowLeft:[-1,0],ArrowDown:[0,1],ArrowUp:[0,-1]};
+  const d=dirs[e.key];if(!d)return;
+  const btns=Array.from(app.querySelectorAll('button:not(:disabled)')).filter(b=>b.offsetParent!==null);
+  if(!btns.length)return;
+  const cur=document.activeElement;
+  if(btns.indexOf(cur)<0){e.preventDefault();btns[0].focus();return;}
+  const r=cur.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+  let best=null,bs=1e9;
+  btns.forEach(b=>{
+    if(b===cur)return;
+    const q=b.getBoundingClientRect(),dx=q.left+q.width/2-cx,dy=q.top+q.height/2-cy;
+    const along=dx*d[0]+dy*d[1];if(along<=4)return;
+    const across=Math.abs(dx*d[1])+Math.abs(dy*d[0]);
+    const s=along+across*2.2;if(s<bs){bs=s;best=b;}
+  });
+  if(best){e.preventDefault();best.focus();try{best.scrollIntoView({block:'nearest'});}catch(x){}}
+});
+document.addEventListener('pointerdown',()=>{kb=false;});
+
+enter('home');
+})();
+</script>
+
+</body></html>
