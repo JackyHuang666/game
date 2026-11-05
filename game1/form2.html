@@ -1,0 +1,1799 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; }
+[hidden] { display: none !important; }
+</style>
+<title>靜心小園</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap">
+<style>
+/* Layout: 花園地圖為首頁，每個遊戲是一張大卡片；進入後一次只做一件事。大字、大按鈕、沒有失敗與倒數壓力。 */
+:root {
+  --bg: #EEF4F1;
+  --surface: #FFFFFF;
+  --tint: #E3EEE9;
+  --fg: #16302B;
+  --muted: #43605A;
+  --line: #B9CFC7;
+  --accent: #1F6F5C;
+  --on-accent: #FFFFFF;
+  --bloom: #C94A75;
+  --sky: #DCEBF3;
+  --cloud: #FFFFFF;
+  --lantern: #E8A93B;
+  --lantern-off: #C9D6D1;
+  --on-lantern: #16302B;
+  --p1: #C94A75;
+  --p2: #E8A93B;
+  --p3: #1F6F5C;
+  --p4: #3F78B8;
+  --font-display: "Noto Serif TC", "Songti TC", "PMingLiU", serif;
+  --font-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  font-size: 22px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F1D1A; --surface: #172823; --tint: #1D342E; --fg: #E9F3EF; --muted: #A9C4BC;
+    --line: #2F4D45; --accent: #6FD0B5; --on-accent: #08241D; --bloom: #F28CAE;
+    --sky: #1B3243; --cloud: #2C4A5E; --lantern: #F2B84B; --lantern-off: #35504A;
+    --p1: #F28CAE; --p2: #F2B84B; --p3: #6FD0B5; --p4: #7FB2F0;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F1D1A; --surface: #172823; --tint: #1D342E; --fg: #E9F3EF; --muted: #A9C4BC;
+  --line: #2F4D45; --accent: #6FD0B5; --on-accent: #08241D; --bloom: #F28CAE;
+  --sky: #1B3243; --cloud: #2C4A5E; --lantern: #F2B84B; --lantern-off: #35504A;
+  --p1: #F28CAE; --p2: #F2B84B; --p3: #6FD0B5; --p4: #7FB2F0;
+  color-scheme: dark;
+}
+:root[data-size="1"] { font-size: 26px; }
+:root[data-size="2"] { font-size: 30px; }
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.7;
+  padding-block: 20px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 430px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+h1, h2 { font-family: var(--font-display); font-weight: 700; line-height: 1.3; margin: 0; text-wrap: balance; }
+h1 { font-size: 1.7rem; }
+h2 { font-size: 1.5rem; }
+h1:focus, h2:focus { outline: none; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+
+button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
+:focus-visible { outline: 4px solid var(--accent); outline-offset: 3px; }
+
+/* top bar */
+.bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.brand { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; letter-spacing: .08em; }
+.tools { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.size-btn {
+  min-height: 52px; padding: 0 18px; border-radius: 999px;
+  border: 2px solid var(--line); background: var(--surface); font-weight: 500;
+}
+.seg { display: inline-flex; border: 2px solid var(--line); border-radius: 999px; overflow: hidden; background: var(--surface); max-width: 100%; }
+.seg button { min-height: 52px; padding: 0 16px; border: 0; background: transparent; font-weight: 500; font-size: .95rem; flex: 1 1 auto; }
+.seg button + button { border-left: 2px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); font-weight: 700; }
+.seg button[disabled] { opacity: .5; cursor: default; }
+.seg button:focus-visible { outline-offset: -4px; }
+.settings { display: flex; flex-direction: column; gap: 12px; }
+.setting { display: flex; flex-direction: column; gap: 6px; }
+.setting .label { font-weight: 500; color: var(--muted); font-size: .9rem; }
+.setting .seg { width: 100%; }
+
+/* buttons */
+.btn {
+  min-height: 68px; padding: 0 34px; border-radius: 999px; border: 0;
+  background: var(--accent); color: var(--on-accent); font-weight: 700; font-size: 1.1rem;
+  align-self: center; max-width: 100%;
+}
+.btn:not(.ghost) { position: sticky; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); box-shadow: 0 8px 20px rgba(0, 0, 0, .28); z-index: 3; }
+.btn.ghost { background: transparent; color: var(--fg); border: 2px solid var(--line); font-weight: 500; }
+.btn.small { min-height: 56px; padding: 0 22px; font-size: 1rem; }
+.btn[disabled] { opacity: .45; cursor: default; }
+.btn.big { min-height: 88px; font-size: 1.5rem; min-width: 60%; }
+.row { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+.ghead { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+
+/* panels */
+.panel { background: var(--surface); border: 2px solid var(--line); border-radius: 18px; padding: 24px 20px; display: flex; flex-direction: column; gap: 18px; }
+.lead { font-size: 1.1rem; }
+.fact { background: var(--tint); border-radius: 14px; padding: 18px 18px 20px; display: flex; flex-direction: column; gap: 8px; }
+.fact .tag { font-size: .8rem; font-weight: 700; letter-spacing: .12em; color: var(--accent); }
+.count { text-align: center; color: var(--muted); }
+.count.stick { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 2; background: var(--surface); padding: 6px 0; }
+.prompt { text-align: center; font-family: var(--font-display); font-weight: 700; font-size: 1.4rem; min-height: 2.8rem; text-wrap: balance; }
+.sec-title { font-size: 1.2rem; }
+.small { font-size: .8rem; color: var(--muted); }
+
+/* onboarding */
+.slide { display: flex; flex-direction: column; gap: 14px; align-items: center; text-align: center; }
+.slide svg { width: 9rem; height: auto; }
+.slide .lead { max-width: 28rem; }
+.pager { display: flex; gap: 10px; justify-content: center; }
+.pager span { width: 16px; height: 16px; border-radius: 50%; border: 3px solid var(--accent); }
+.pager span.on { background: var(--accent); }
+
+/* map */
+.streak { display: flex; flex-direction: column; gap: 12px; background: var(--tint); border-radius: 16px; padding: 18px 14px; }
+.streak .big { font-family: var(--font-display); font-weight: 700; font-size: 2.3rem; line-height: 1.15; color: var(--accent); text-align: center; }
+.week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.day { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: .8rem; color: var(--muted); }
+.day .dot { width: 100%; max-width: 3rem; aspect-ratio: 1; border-radius: 50%; border: 2px dashed var(--line); display: grid; place-items: center; background: var(--surface); }
+.day .dot svg { width: 82%; height: auto; }
+.day.done .dot { border: 2px solid var(--bloom); }
+.day.today .dot { border: 3px solid var(--accent); }
+.day.today { color: var(--fg); font-weight: 700; }
+.theme { border: 2px solid var(--line); border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
+.theme .tag { font-size: .8rem; font-weight: 700; letter-spacing: .12em; color: var(--accent); }
+.theme .tname { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; }
+.gcards { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.gcard { display: grid; grid-template-columns: 4rem minmax(0, 1fr); gap: 14px; align-items: center; text-align: left; min-height: 6.4rem; padding: 12px 14px; border-radius: 16px; border: 2px solid var(--line); background: var(--surface); }
+.gcard .gt { display: block; font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; line-height: 1.4; }
+.gcard .gd { display: block; font-size: .85rem; color: var(--muted); line-height: 1.5; }
+.gcard .gb { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.gicon { width: 4rem; height: 4rem; }
+.badge { font-size: .75rem; font-weight: 700; padding: 0 10px; border-radius: 999px; background: var(--tint); color: var(--accent); line-height: 1.7; }
+.badge.rec { background: transparent; border: 2px solid var(--lantern); color: var(--fg); line-height: 1.5; }
+.badge.done { background: var(--accent); color: var(--on-accent); }
+details.more { border: 2px solid var(--line); border-radius: 16px; padding: 4px 16px; }
+details.more summary { min-height: 56px; display: flex; align-items: center; font-weight: 700; cursor: pointer; }
+details.more[open] summary { margin-bottom: 8px; }
+.benefits { list-style: none; margin: 0; padding: 0 0 12px; display: flex; flex-direction: column; gap: 14px; }
+.benefits li { display: grid; grid-template-columns: 2.4rem minmax(0, 1fr); gap: 14px; align-items: start; }
+.benefits svg { width: 2.4rem; height: 2.4rem; }
+.benefits strong { display: block; }
+.recipe { margin: 0 0 12px; padding-left: 1.4em; display: flex; flex-direction: column; gap: 6px; }
+
+/* result */
+.result { display: flex; flex-direction: column; gap: 14px; }
+.result .msg { text-align: center; font-family: var(--font-display); font-weight: 700; font-size: 1.4rem; }
+
+/* breath */
+.stage { display: flex; justify-content: center; padding: 8px 0; }
+.flower { width: min(100%, 21rem); aspect-ratio: 1; transform: scale(.55); will-change: transform; }
+.flower svg { width: 100%; height: 100%; display: block; }
+.phase { text-align: center; font-family: var(--font-display); font-weight: 700; font-size: 1.6rem; min-height: 2.6rem; }
+.secnum { text-align: center; font-family: var(--font-display); font-weight: 700; font-size: 3rem; line-height: 1; min-height: 3rem; color: var(--accent); font-variant-numeric: tabular-nums; }
+.dots { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; }
+.dots span { width: 22px; height: 22px; border-radius: 50%; border: 3px solid var(--bloom); }
+.dots span.on { background: var(--bloom); }
+
+/* clouds */
+.sky { background: var(--sky); border-radius: 18px; padding: 3rem 14px 30px; display: flex; flex-direction: column; gap: 28px; position: relative; overflow: hidden; min-height: 22rem; }
+.sun { position: absolute; top: 10px; right: 14px; width: 4.2rem; height: 4.2rem; opacity: 0; transition: opacity 2s; pointer-events: none; }
+.sky.clear .sun { opacity: 1; }
+.sky .done-msg { position: absolute; inset: auto 0 18px 0; text-align: center; font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; opacity: 0; transition: opacity 2s .6s; }
+.sky.clear .done-msg { opacity: 1; }
+.cloud {
+  position: relative; border: 0; background: var(--cloud); color: var(--fg);
+  min-height: 3.8rem; padding: 10px 22px; border-radius: 60px; width: 86%; font-weight: 500; font-size: .95rem; text-align: center;
+  box-shadow: 0 4px 0 rgba(22, 48, 43, .12);
+  animation: bob 6s ease-in-out infinite;
+  transition: opacity 1.8s ease, transform 1.8s ease;
+}
+.cloud::before, .cloud::after { content: ""; position: absolute; background: var(--cloud); border-radius: 50%; z-index: -1; }
+.cloud::before { width: 3rem; height: 3rem; top: -1.3rem; left: 16%; }
+.cloud::after { width: 3.6rem; height: 3.6rem; top: -1.6rem; right: 18%; }
+.cloud:nth-child(odd) { align-self: flex-start; }
+.cloud:nth-child(even) { align-self: flex-end; animation-delay: -3s; }
+.cloud.gone { opacity: 0; transform: translateY(-70px); pointer-events: none; }
+.cloud.hidden { visibility: hidden; }
+@keyframes bob { 0%, 100% { translate: 0 0; } 50% { translate: 8px -6px; } }
+
+/* lantern */
+.cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.card {
+  min-height: 4.2rem; padding: 10px; font-size: .9rem; overflow-wrap: anywhere; border-radius: 14px; border: 2px solid var(--line);
+  background: var(--surface); font-weight: 500; text-align: center;
+}
+.card[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 700; }
+.card[disabled] { opacity: .45; cursor: default; }
+.card[aria-pressed="true"][disabled] { opacity: 1; }
+.lanterns { display: flex; justify-content: space-around; align-items: flex-start; gap: 8px; padding: 6px 0 10px; }
+.lantern { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 31%; min-width: 0; text-align: center; font-size: .85rem; line-height: 1.4; color: var(--muted); }
+.lantern svg { width: min(100%, 5.4rem); height: auto; }
+.lantern .glow { fill: var(--lantern-off); transition: fill .8s; }
+.lantern.lit .glow { fill: var(--lantern); }
+.lantern.lit { color: var(--fg); font-weight: 500; }
+.lantern b { font-weight: inherit; overflow-wrap: anywhere; }
+
+/* clap */
+.beat-stage { position: relative; width: min(100%, 17rem); aspect-ratio: 1; margin: 0 auto; display: grid; place-items: center; overflow: hidden; }
+.beat-target { width: 5.5rem; height: 5.5rem; border-radius: 50%; border: 6px solid var(--accent); background: var(--tint); transition: background .15s, transform .15s; }
+.beat-target.hit { background: var(--accent); transform: scale(1.12); }
+.beat-ring { position: absolute; left: 50%; top: 50%; width: 5.5rem; height: 5.5rem; margin: -2.75rem 0 0 -2.75rem; border-radius: 50%; border: 6px solid var(--bloom); opacity: 0; pointer-events: none; }
+
+/* fingers */
+.hands { display: flex; flex-direction: column; gap: 16px; }
+.hand { display: flex; flex-direction: column; gap: 6px; }
+.hand .hl { font-weight: 700; }
+.row5 { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.finger { min-height: 4.4rem; border-radius: 18px; border: 2px solid var(--line); background: var(--surface); font-weight: 500; font-size: .8rem; padding: 0; }
+.finger.target { background: var(--lantern); color: var(--on-lantern); border-color: var(--fg); font-weight: 700; animation: pulse 1s ease-in-out infinite; }
+.finger.ok { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.finger.wrong { animation: shake .3s; }
+@keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(232, 169, 59, .7); } 50% { box-shadow: 0 0 0 8px rgba(232, 169, 59, 0); } }
+@keyframes shake { 0%, 100% { translate: 0 0; } 25% { translate: -6px 0; } 75% { translate: 6px 0; } }
+
+/* memory */
+.mem { display: grid; grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr)); gap: 8px; }
+.mcard { aspect-ratio: 1 / 1.1; border-radius: 14px; border: 2px solid var(--line); background: var(--tint); padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: .75rem; font-weight: 500; }
+.mcard svg { width: 70%; height: auto; }
+.mcard.up, .mcard.match { background: var(--surface); }
+.mcard.match { border-color: var(--accent); border-width: 3px; }
+
+/* petals */
+.pad { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; width: min(100%, 20rem); margin: 0 auto; }
+.petal { aspect-ratio: 1; min-height: 5rem; border-radius: 50%; border: 5px solid transparent; opacity: .55; transition: opacity .15s, transform .15s, border-color .15s; padding: 0; }
+.petal.p1 { grid-area: 1 / 2; background: var(--p1); }
+.petal.p2 { grid-area: 2 / 3; background: var(--p2); }
+.petal.p3 { grid-area: 3 / 2; background: var(--p3); }
+.petal.p4 { grid-area: 2 / 1; background: var(--p4); }
+.petal.lit { opacity: 1; transform: scale(1.1); border-color: var(--fg); }
+.pad .core { grid-area: 2 / 2; display: grid; place-items: center; }
+.pad .core svg { width: 80%; height: auto; }
+
+/* share */
+.shareimg { width: 100%; height: auto; border-radius: 14px; display: block; border: 2px solid var(--line); }
+textarea.sharetext { width: 100%; min-height: 8rem; border-radius: 14px; border: 2px solid var(--line); background: var(--bg); color: var(--fg); font: inherit; font-size: .95rem; padding: 12px; resize: vertical; }
+
+/* 花園場景 */
+.sel { width: 100%; min-height: 56px; border-radius: 14px; border: 2px solid var(--line); background: var(--surface); color: var(--fg); font: inherit; font-size: .95rem; padding: 0 12px; }
+.map-top { display: flex; flex-direction: column; gap: 18px; }
+.map-side { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.scene-wrap { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.scene { position: relative; width: 100%; max-width: 440px; margin: 0 auto; aspect-ratio: 400 / 640; border-radius: 18px; overflow: hidden; background: #8EC9EA; border: 2px solid var(--line); }
+.scene > svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.spots { position: absolute; inset: 0; pointer-events: none; }
+.spot { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: 0; padding: 0; pointer-events: auto; }
+.spot .ico { width: 52px; height: 52px; border-radius: 50%; background: var(--surface); border: 3px solid var(--line); display: grid; place-items: center; box-shadow: 0 4px 10px rgba(0, 0, 0, .25); }
+.spot .ico .gicon { width: 34px; height: 34px; }
+.spot .lbl { white-space: nowrap; font-size: clamp(13px, .72rem, 16px); font-weight: 700; line-height: 1.5; text-align: center; background: var(--surface); border: 2px solid var(--line); border-radius: 12px; padding: 0 6px; }
+.spot.rec .ico { border-color: var(--lantern); animation: spotglow 2.6s ease-in-out infinite; }
+.spot.done .ico { border-color: var(--accent); }
+.spot .chk, .spot .rtag { position: absolute; top: -6px; font-weight: 700; white-space: nowrap; }
+.spot .chk { left: calc(50% + 8px); width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: var(--on-accent); font-size: 15px; line-height: 26px; text-align: center; }
+.spot .rtag { left: calc(50% + 2px); background: var(--lantern); color: var(--on-lantern); font-size: 12px; line-height: 1.5; padding: 0 7px; border-radius: 999px; }
+@keyframes spotglow { 0%, 100% { box-shadow: 0 4px 10px rgba(0, 0, 0, .25), 0 0 0 0 rgba(232, 169, 59, .7); } 50% { box-shadow: 0 4px 10px rgba(0, 0, 0, .25), 0 0 0 10px rgba(232, 169, 59, 0); } }
+.banner { border-radius: 14px; overflow: hidden; line-height: 0; border: 2px solid var(--line); }
+.banner svg { width: 100%; height: auto; display: block; }
+.panel { animation: fadein .6s ease; }
+@keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+
+/* 花園動態（只在花園場景與橫幅內） */
+@keyframes sway { from { transform: rotate(-1.6deg); } to { transform: rotate(1.6deg); } }
+.sway { transform-box: fill-box; transform-origin: 50% 100%; animation: sway 6s ease-in-out infinite alternate; }
+@keyframes cld { from { transform: translateX(-50px); } to { transform: translateX(50px); } }
+.cld { animation: cld 46s ease-in-out infinite alternate; }
+@keyframes mistmove { from { transform: translateX(-40px); } to { transform: translateX(40px); } }
+.mist { animation: mistmove 22s ease-in-out infinite alternate; }
+@keyframes rip { 0% { transform: scale(.2); opacity: .75; } 100% { transform: scale(1.7); opacity: 0; } }
+@keyframes ript { 0% { transform: scale(.3); opacity: .9; } 100% { transform: scale(5); opacity: 0; } }
+.rip { transform-box: fill-box; transform-origin: center; animation: rip 6s ease-out infinite; }
+.rip.tap { animation: ript 2.2s ease-out forwards; }
+@keyframes tw { 0%, 100% { opacity: .3; } 50% { opacity: 1; } }
+.star { animation: tw 3.4s ease-in-out infinite; }
+@keyframes fall { from { transform: translate(var(--x), -24px) rotate(0deg); } to { transform: translate(calc(var(--x) + var(--dx)), 670px) rotate(540deg); } }
+.fall { transform-box: fill-box; transform-origin: center; animation: fall 18s linear infinite; }
+@keyframes fallb { from { transform: translate(var(--x), -10px) rotate(0deg); } to { transform: translate(calc(var(--x) + var(--dx)), 110px) rotate(360deg); } }
+.fallb { transform-box: fill-box; transform-origin: center; animation: fallb 9s linear infinite; }
+@keyframes flap { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(.3); } }
+.wg { transform-box: fill-box; transform-origin: center; animation: flap .55s ease-in-out infinite; }
+@keyframes fly1 { 0% { transform: translate(30px, 330px); } 20% { transform: translate(120px, 262px); } 40% { transform: translate(225px, 300px); } 60% { transform: translate(305px, 385px); } 80% { transform: translate(170px, 455px); } 100% { transform: translate(30px, 330px); } }
+@keyframes fly2 { 0% { transform: translate(360px, 400px); } 25% { transform: translate(262px, 330px); } 50% { transform: translate(150px, 425px); } 75% { transform: translate(70px, 300px); } 100% { transform: translate(360px, 400px); } }
+@keyframes fly3 { 0% { transform: translate(210px, 232px); } 25% { transform: translate(300px, 282px); } 50% { transform: translate(335px, 365px); } 75% { transform: translate(120px, 335px); } 100% { transform: translate(210px, 232px); } }
+.bf { animation-duration: 26s; animation-timing-function: ease-in-out; animation-iteration-count: infinite; }
+.bf.f1 { animation-name: fly1; }
+.bf.f2 { animation-name: fly2; }
+.bf.f3 { animation-name: fly3; }
+@keyframes drag { 0% { transform: translate(70px, 350px); } 22% { transform: translate(160px, 318px); } 28% { transform: translate(160px, 318px); } 52% { transform: translate(300px, 362px); } 58% { transform: translate(300px, 362px); } 80% { transform: translate(210px, 405px); } 86% { transform: translate(210px, 405px); } 100% { transform: translate(70px, 350px); } }
+.dfly { animation: drag 17s ease-in-out infinite; }
+@keyframes bird { from { transform: translate(-40px, 0); } to { transform: translate(440px, -26px); } }
+.bird { animation: bird 24s linear infinite; }
+@keyframes koi1 { 0% { transform: translate(0, 0) scaleX(1); } 46% { transform: translate(70px, 10px) scaleX(1); } 50% { transform: translate(70px, 10px) scaleX(-1); } 96% { transform: translate(0, 0) scaleX(-1); } 100% { transform: translate(0, 0) scaleX(1); } }
+@keyframes koi2 { 0% { transform: translate(0, 0) scaleX(-1); } 46% { transform: translate(-64px, -12px) scaleX(-1); } 50% { transform: translate(-64px, -12px) scaleX(1); } 96% { transform: translate(0, 0) scaleX(1); } 100% { transform: translate(0, 0) scaleX(-1); } }
+.koi { transform-box: fill-box; transform-origin: center; animation: koi1 19s ease-in-out infinite; }
+.koi.k2 { animation-name: koi2; animation-duration: 23s; }
+@keyframes ff { 0%, 100% { transform: translate(0, 0); opacity: .2; } 25% { transform: translate(10px, -8px); opacity: 1; } 50% { transform: translate(-6px, -16px); opacity: .3; } 75% { transform: translate(8px, -6px); opacity: 1; } }
+.ff { animation: ff 9s ease-in-out infinite; }
+:root[data-motion="off"] .moving { display: none; }
+:root[data-motion="off"] .scene *, :root[data-motion="off"] .banner *, :root[data-motion="off"] .panel { animation: none !important; }
+
+@media (min-width: 760px) {
+  :root[data-view="desktop"] .map-top { display: grid; grid-template-columns: minmax(0, 440px) minmax(0, 1fr); gap: 32px; align-items: start; }
+  :root[data-view="desktop"] .banner { max-width: 46rem; margin-inline: auto; width: 100%; }
+}
+
+/* 電腦版：寬螢幕才會展開成寬版排列 */
+@media (min-width: 760px) {
+  :root[data-view="desktop"] .wrap { max-width: 1040px; }
+  :root[data-view="desktop"] .panel { padding: 36px 44px; gap: 24px; }
+  :root[data-view="desktop"] h1 { font-size: 2.1rem; }
+  :root[data-view="desktop"] h2 { font-size: 1.8rem; }
+  :root[data-view="desktop"] .sec-title { font-size: 1.4rem; }
+  :root[data-view="desktop"] .flower { width: min(100%, 27rem); }
+  :root[data-view="desktop"] .settings { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 20px 40px; }
+  :root[data-view="desktop"] .setting { align-items: center; }
+  :root[data-view="desktop"] .setting .seg { width: auto; }
+  :root[data-view="desktop"] .sky { flex-direction: row; flex-wrap: wrap; justify-content: space-around; align-items: flex-start; gap: 44px 4%; padding: 4rem 28px 4.5rem; min-height: 20rem; }
+  :root[data-view="desktop"] .cloud { width: 44%; align-self: auto; }
+  :root[data-view="desktop"] .cards { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  :root[data-view="desktop"] .lantern svg { width: min(100%, 7.5rem); }
+  :root[data-view="desktop"] .benefits { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 32px; }
+  :root[data-view="desktop"] .btn { min-width: min(18rem, 100%); }
+  :root[data-view="desktop"] .gcards { grid-template-columns: 1fr 1fr; }
+  :root[data-view="desktop"] .hands, :root[data-view="desktop"] .mem, :root[data-view="desktop"] .pad, :root[data-view="desktop"] .beat-stage { width: min(100%, 36rem); margin-inline: auto; }
+  :root[data-view="desktop"] .pad { width: min(100%, 26rem); }
+  :root[data-view="desktop"] .shareimg { max-width: 34rem; align-self: center; }
+  :root[data-view="desktop"] .streak { padding: 24px 28px; }
+}
+@media (max-width: 480px) {
+  .panel { padding: 20px 14px; }
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.3rem; }
+  .btn { padding: 0 24px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cloud, .finger.target { animation: none; }
+  .finger.target { outline: 4px solid var(--fg); outline-offset: 2px; }
+  .cloud, .sun, .sky .done-msg, .lantern .glow, .petal, .beat-target { transition-duration: .01s; }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="bar">
+    <div class="brand">靜心小園</div>
+    <div class="tools">
+      <div class="seg" id="segView" role="group" aria-label="切換版面">
+        <button type="button" data-v="phone" aria-pressed="true">手機版</button>
+        <button type="button" data-v="desktop" aria-pressed="false">電腦版</button>
+      </div>
+      <button class="size-btn" id="sizeBtn" type="button" aria-label="切換字體大小">字體：標準</button>
+      <button class="size-btn" id="soundBtn" type="button" aria-label="開關花園聲音與語音提示">聲音：關</button>
+      <button class="size-btn" id="motionBtn" type="button" aria-label="開關動畫">動畫：開</button>
+    </div>
+  </div>
+
+  <!-- 第一次使用引導 -->
+  <section id="s-onboard" class="panel" hidden>
+    <h1 tabindex="-1">歡迎來到靜心小園</h1>
+    <div class="slide" id="slide"></div>
+    <div class="pager" id="pager" aria-hidden="true"></div>
+    <div class="row">
+      <button class="btn ghost" type="button" id="obPrev">上一步</button>
+      <button class="btn" type="button" id="obNext">下一步</button>
+    </div>
+  </section>
+
+  <!-- 花園地圖 -->
+  <section id="s-map" class="panel" hidden>
+    <h1 tabindex="-1">今天想練習哪一個？</h1>
+    <div class="map-top">
+      <div class="scene-wrap">
+        <div class="scene" id="scene"></div>
+        <p class="count" id="sceneCap"></p>
+      </div>
+      <div class="map-side">
+        <div class="streak" id="streak"></div>
+        <div class="theme" id="theme"></div>
+      </div>
+    </div>
+    <h2 class="sec-title">今日推薦</h2>
+    <div class="gcards" id="recCards"></div>
+    <h2 class="sec-title">想多玩一點</h2>
+    <div class="gcards" id="moreCards"></div>
+    <div class="row">
+      <button class="btn ghost" type="button" data-go="share">分享給家人</button>
+      <button class="btn ghost" type="button" data-go="onboard">怎麼玩</button>
+    </div>
+    <details class="more">
+      <summary>冥想可以帶給生活什麼</summary>
+      <ul class="benefits">
+        <li>
+          <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="var(--tint)"/><path d="M10 22c4-8 8 8 12 0s6 4 8-2" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round"/></svg>
+          <span><strong>放鬆身心</strong>慢慢呼吸，讓緊繃的肩膀和心情鬆下來。</span>
+        </li>
+        <li>
+          <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="var(--tint)"/><path d="M26 10a11 11 0 1 0 4 14 9 9 0 0 1-4-14z" fill="var(--accent)"/></svg>
+          <span><strong>睡得安穩</strong>睡前靜心幾分鐘，腦中的念頭比較容易沉澱。</span>
+        </li>
+        <li>
+          <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="var(--tint)"/><circle cx="20" cy="20" r="9" fill="none" stroke="var(--accent)" stroke-width="3"/><circle cx="20" cy="20" r="3" fill="var(--accent)"/></svg>
+          <span><strong>更能專注</strong>練習把心帶回眼前，做事和聊天都更投入。</span>
+        </li>
+        <li>
+          <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="var(--tint)"/><path d="M20 29s-9-5.5-9-12a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 6.500-9 12-9 12z" fill="var(--bloom)"/></svg>
+          <span><strong>心情平穩</strong>學會看著情緒來去，對生活多一份從容與感謝。</span>
+        </li>
+      </ul>
+      <div class="fact">
+        <span class="tag">每天只要 5 分鐘</span>
+        <ol class="recipe">
+          <li>坐在舒服的椅子上，雙手放在腿上。</li>
+          <li>慢慢吸氣數到 4，再慢慢吐氣數到 6，重複 10 次。</li>
+          <li>念頭跑出來時，輕輕回到呼吸就好。</li>
+        </ol>
+      </div>
+    </details>
+    <details class="more" id="voiceBox">
+      <summary>語音設定</summary>
+      <div class="settings" style="padding-bottom:12px">
+        <div class="setting">
+          <label class="label" for="voiceSel">說話的聲音</label>
+          <select class="sel" id="voiceSel"></select>
+        </div>
+        <button class="btn ghost small" type="button" id="voiceTry">試聽這個聲音</button>
+        <p class="small" id="voiceNote"></p>
+      </div>
+    </details>
+    <p class="small">冥想是日常保養，不能取代醫師的診斷與治療。如有身體不適，請諮詢醫療人員。</p>
+  </section>
+
+  <!-- 遊戲：呼吸 -->
+  <section id="s-breath" class="panel" hidden>
+    <div class="ghead">
+      <button class="btn ghost small" type="button" data-go="map">← 回花園</button>
+      <button class="btn ghost small vbtn" type="button" data-speak="breath">聽說明</button>
+    </div>
+    <h2 tabindex="-1">跟著花朵呼吸</h2>
+    <p class="lead" id="lead-breath">花變大時吸氣，變小時吐氣，照自己的節奏就好。</p>
+    <div class="settings">
+      <div class="setting">
+        <span class="label" id="lblSec">吸氣、吐氣各幾秒</span>
+        <div class="seg" id="segSec" role="group" aria-labelledby="lblSec">
+          <button type="button" data-v="4" aria-pressed="true">4 秒</button>
+          <button type="button" data-v="6" aria-pressed="false">6 秒</button>
+          <button type="button" data-v="8" aria-pressed="false">8 秒</button>
+        </div>
+      </div>
+      <div class="setting">
+        <span class="label" id="lblCnt">呼吸幾次</span>
+        <div class="seg" id="segCnt" role="group" aria-labelledby="lblCnt">
+          <button type="button" data-v="3" aria-pressed="true">3 次</button>
+          <button type="button" data-v="5" aria-pressed="false">5 次</button>
+          <button type="button" data-v="10" aria-pressed="false">10 次</button>
+        </div>
+      </div>
+    </div>
+    <div class="stage">
+      <div class="flower" id="flower" aria-hidden="true">
+        <svg viewBox="0 0 300 300">
+          <g id="petals"></g>
+          <circle cx="150" cy="150" r="30" fill="var(--lantern)"/>
+        </svg>
+      </div>
+    </div>
+    <p class="phase" id="phase" aria-live="polite">準備好了，就按開始</p>
+    <p class="secnum" id="secNum" aria-hidden="true"></p>
+    <div class="dots" id="dots" aria-hidden="true"></div>
+    <p class="count" id="count">已完成 0／3 次呼吸</p>
+    <button class="btn" type="button" id="breathBtn">開始呼吸</button>
+    <div class="result" id="res-breath" hidden></div>
+  </section>
+
+  <!-- 遊戲：雲朵 -->
+  <section id="s-clouds" class="panel" hidden>
+    <div class="ghead">
+      <button class="btn ghost small" type="button" data-go="map">← 回花園</button>
+      <button class="btn ghost small vbtn" type="button" data-speak="clouds">聽說明</button>
+    </div>
+    <h2 tabindex="-1">讓雲朵飄走</h2>
+    <p class="lead" id="lead-clouds">心裡常常會冒出各種念頭。輕輕點一下雲朵，就讓它飄走。</p>
+    <p class="count stick" id="cloudCount">還有 5 朵雲</p>
+    <div class="sky" id="sky">
+      <svg class="sun" viewBox="0 0 100 100" aria-hidden="true">
+        <circle cx="50" cy="50" r="22" fill="var(--lantern)"/>
+        <g stroke="var(--lantern)" stroke-width="5" stroke-linecap="round">
+          <path d="M50 8v12M50 80v12M8 50h12M80 50h12M20 20l8 8M72 72l8 8M80 20l-8 8M28 72l-8 8"/>
+        </g>
+      </svg>
+      <button class="cloud" type="button">等一下要吃什麼？</button>
+      <button class="cloud" type="button">上次那件事好像沒做好</button>
+      <button class="cloud" type="button">明天有什麼行程？</button>
+      <button class="cloud" type="button">孩子們過得好嗎？</button>
+      <button class="cloud" type="button">肩膀有點痠</button>
+      <p class="done-msg">天空放晴了</p>
+    </div>
+    <div class="result" id="res-clouds" hidden></div>
+  </section>
+
+  <!-- 遊戲：感恩的燈 -->
+  <section id="s-lantern" class="panel" hidden>
+    <div class="ghead">
+      <button class="btn ghost small" type="button" data-go="map">← 回花園</button>
+      <button class="btn ghost small vbtn" type="button" data-speak="lantern">聽說明</button>
+    </div>
+    <h2 tabindex="-1">點亮感恩的燈</h2>
+    <p class="lead" id="lead-lantern">想一想，今天有哪些小事讓你覺得安心或開心？請選三項，每選一項就點亮一盞燈。</p>
+    <div class="lanterns" id="lanterns" aria-live="polite"></div>
+    <div class="cards" id="cards"></div>
+    <p class="count" id="pickCount">已選 0／3 項</p>
+    <div class="result" id="res-lantern" hidden></div>
+  </section>
+
+  <!-- 遊戲：節拍拍手 -->
+  <section id="s-clap" class="panel" hidden>
+    <div class="ghead">
+      <button class="btn ghost small" type="button" data-go="map">← 回花園</button>
+      <button class="btn ghost small vbtn" type="button" data-speak="clap">聽說明</button>
+    </div>
+    <h2 tabindex="-1">跟著節拍拍手</h2>
+    <p class="lead" id="lead-clap">看到外面的圈圈縮小，縮到跟中間的圓一樣大時，輕輕點一下「拍」。點不準也沒關係，沒有輸贏。</p>
+    <div class="settings">
+      <div class="setting">
+        <span class="label" id="lblSpeed">節拍速度</span>
+        <div class="seg" id="segSpeed" role="group" aria-labelledby="lblSpeed">
+          <button type="button" data-v="2000" aria-pressed="true">慢（2 秒一拍）</button>
+          <button type="button" data-v="1500" aria-pressed="false">中（1.5 秒一拍）</button>
+        </div>
+      </div>
+    </div>
+    <div class="beat-stage" aria-hidden="true">
+      <div class="beat-target" id="beatTarget"></div>
+      <div class="beat-ring" id="beatRing"></div>
+    </div>
+    <p class="prompt" id="clapMsg" aria-live="polite">準備好了，就按開始</p>
+    <div class="dots" id="clapDots" aria-hidden="true"></div>
+    <button class="btn" type="button" id="clapStart">開始</button>
+    <button class="btn big" type="button" id="clapTap" hidden>拍！</button>
+    <div class="result" id="res-clap" hidden></div>
+  </section>
+
+  <!-- 遊戲：手指操 -->
+  <section id="s-fingers" class="panel" hidden>
+    <div class="ghead">
+      <button class="btn ghost small" type="button" data-go="map">← 回花園</button>
+      <button class="btn ghost small vbtn" type="button" data-speak="fingers">聽說明</button>
+    </div>
+    <h2 tabindex="-1">左右手手指操</h2>
+    <p class="lead" id="lead-fingers">看到亮起來的手指，就在畫面上點一下，同時動一動自己的那根手指。</p>
+    <p class="prompt" id="fingerMsg" aria-live="polite">準備好了，就按開始</p>
+    <div class="hands" id="hands" hidden>
+      <div class="hand"><span class="hl">左手</span><div class="row5" id="rowL"></div></div>
+      <div class="hand"><span class="hl">右手</span><div class="row5" id="rowR"></div></div>
+    </div>
+    <p class="count" id="fingerCount">第 1／8 回</p>
+    <button class="btn" type="button" id="fingerStart">開始</button>
+    <div class="result" id="res-fingers" hidden></div>
+  </section>
+
+  <!-- 遊戲：記憶配對 -->
+  <section id="s-memory" class="panel" hidden>
+    <div class="ghead">
+      <button class="btn ghost small" type="button" data-go="map">← 回花園</button>
+      <button class="btn ghost small vbtn" type="button" data-speak="memory">聽說明</button>
+    </div>
+    <h2 tabindex="-1">記憶配對花園</h2>
+    <p class="lead" id="lead-memory">點開兩張卡片，找出一樣的花。翻錯了也沒關係，慢慢來。</p>
+    <div class="settings">
+      <div class="setting">
+        <span class="label" id="lblPairs">要找幾對</span>
+        <div class="seg" id="segPairs" role="group" aria-labelledby="lblPairs">
+          <button type="button" data-v="3" aria-pressed="true">3 對</button>
+          <button type="button" data-v="4" aria-pressed="false">4 對</button>
+          <button type="button" data-v="6" aria-pressed="false">6 對</button>
+        </div>
+      </div>
+    </div>
+    <div class="mem" id="mem"></div>
+    <p class="count" id="memCount" aria-live="polite">已翻 0 次，找到 0／3 對</p>
+    <div class="result" id="res-memory" hidden></div>
+  </section>
+
+  <!-- 遊戲：花瓣順序 -->
+  <section id="s-petals" class="panel" hidden>
+    <div class="ghead">
+      <button class="btn ghost small" type="button" data-go="map">← 回花園</button>
+      <button class="btn ghost small vbtn" type="button" data-speak="petals">聽說明</button>
+    </div>
+    <h2 tabindex="-1">按順序點亮花瓣</h2>
+    <p class="lead" id="lead-petals">先看花瓣亮起來的順序，記起來，再照順序點一遍。看錯了可以再看一次。</p>
+    <p class="prompt" id="padMsg" aria-live="polite">準備好了，就按開始</p>
+    <div class="pad" id="pad">
+      <button class="petal p1" type="button" data-i="0" aria-label="上面的粉紅花瓣"></button>
+      <button class="petal p2" type="button" data-i="1" aria-label="右邊的黃色花瓣"></button>
+      <button class="petal p3" type="button" data-i="2" aria-label="下面的綠色花瓣"></button>
+      <button class="petal p4" type="button" data-i="3" aria-label="左邊的藍色花瓣"></button>
+      <div class="core" id="padCore" aria-hidden="true"></div>
+    </div>
+    <p class="count" id="padCount">第 1／4 回</p>
+    <button class="btn" type="button" id="padStart">開始</button>
+    <div class="result" id="res-petals" hidden></div>
+  </section>
+
+  <!-- 分享 -->
+  <section id="s-share" class="panel" hidden>
+    <div class="ghead">
+      <button class="btn ghost small" type="button" data-go="map">← 回花園</button>
+    </div>
+    <h2 tabindex="-1">分享給家人</h2>
+    <p class="lead">把今天的練習傳給家人，邀請他們一起來。</p>
+    <img class="shareimg" id="shareImg" alt="我的靜心小園：連續練習天數與七天花園">
+    <p class="small" id="shareHint">長按圖片，可以儲存或傳給家人。</p>
+    <textarea class="sharetext" id="shareText" readonly aria-label="分享的文字"></textarea>
+    <button class="btn" type="button" id="copyBtn">複製文字</button>
+    <p class="count" id="copyMsg" aria-live="polite"></p>
+  </section>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  /* 想讓分享文字附上固定網址，請填在這裡；留空則使用目前開啟的網址 */
+  var SHARE_URL = '';
+
+  /* ---------- 儲存（localStorage 失敗時改用記憶體） ---------- */
+  var mem = {};
+  var store = {
+    get: function (k) { try { var v = localStorage.getItem(k); return v === null ? (mem[k] || null) : v; } catch (e) { return mem[k] || null; } },
+    set: function (k, v) { mem[k] = v; try { localStorage.setItem(k, v); } catch (e) {} }
+  };
+
+  /* ---------- 圖形 ---------- */
+  function lotus(cls, color) {
+    var s = '<svg class="' + cls + '" viewBox="-30 -32 60 60" aria-hidden="true">';
+    [-60, -30, 0, 30, 60].forEach(function (a) {
+      s += '<ellipse cx="0" cy="-14" rx="7" ry="15" fill="' + color + '" fill-opacity=".7" stroke="' + color + '" stroke-width="2" transform="rotate(' + a + ')"/>';
+    });
+    return s + '<circle cx="0" cy="-2" r="5" fill="var(--lantern)"/></svg>';
+  }
+  var KINDS = [
+    { name: '蓮花', svg: function () { return lotus('', 'var(--bloom)'); } },
+    { name: '向日葵', svg: function () {
+      var s = '<svg viewBox="0 0 40 40" aria-hidden="true">';
+      for (var i = 0; i < 10; i++) s += '<ellipse cx="20" cy="9" rx="3.2" ry="7" fill="#F2B84B" stroke="#B9791A" stroke-width="1" transform="rotate(' + (i * 36) + ' 20 20)"/>';
+      return s + '<circle cx="20" cy="20" r="6" fill="#7A4B1E"/></svg>'; } },
+    { name: '鬱金香', svg: function () {
+      return '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 22v14" stroke="#3E9B6B" stroke-width="3" stroke-linecap="round"/><path d="M11 8l5 6 4-7 4 7 5-6v13c0 6-6 9-9 9s-9-3-9-9z" fill="#8E6BBF" stroke="#5B3E8C" stroke-width="1.5" stroke-linejoin="round"/></svg>'; } },
+    { name: '葉子', svg: function () {
+      return '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M7 33C7 14 19 6 34 6c0 17-8 28-27 27z" fill="#3E9B6B" stroke="#25704A" stroke-width="1.5"/><path d="M8 32L28 12" stroke="#25704A" stroke-width="2" stroke-linecap="round"/></svg>'; } },
+    { name: '梅花', svg: function () {
+      var s = '<svg viewBox="0 0 40 40" aria-hidden="true">';
+      for (var i = 0; i < 5; i++) s += '<circle cx="20" cy="9.500" r="7" fill="#F4A9BF" stroke="#C94A75" stroke-width="1.500" transform="rotate(' + (i * 72) + ' 20 20)"/>';
+      return s + '<circle cx="20" cy="20" r="4" fill="#E8A93B"/></svg>'; } },
+    { name: '雛菊', svg: function () {
+      var s = '<svg viewBox="0 0 40 40" aria-hidden="true">';
+      for (var i = 0; i < 12; i++) s += '<ellipse cx="20" cy="8.500" rx="2.200" ry="7" fill="#FFFFFF" stroke="#6B8A82" stroke-width="1" transform="rotate(' + (i * 30) + ' 20 20)"/>';
+      return s + '<circle cx="20" cy="20" r="5" fill="#F2B84B" stroke="#B9791A" stroke-width="1"/></svg>'; } }
+  ];
+  function gameIcon(id) {
+    var s = '<svg class="gicon" viewBox="0 0 64 64" aria-hidden="true">';
+    if (id === 'breath') return lotus('gicon', 'var(--bloom)');
+    if (id === 'clouds') s += '<circle cx="24" cy="36" r="12" fill="var(--sky)" stroke="var(--line)" stroke-width="2"/><circle cx="38" cy="30" r="14" fill="var(--sky)" stroke="var(--line)" stroke-width="2"/><rect x="10" y="36" width="46" height="14" rx="7" fill="var(--sky)" stroke="var(--line)" stroke-width="2"/><rect x="14" y="38" width="38" height="10" fill="var(--sky)"/>';
+    if (id === 'lantern') s += '<path d="M32 4v8" stroke="var(--muted)" stroke-width="3"/><rect x="22" y="10" width="20" height="5" rx="2" fill="var(--muted)"/><ellipse cx="32" cy="32" rx="16" ry="19" fill="var(--lantern)"/><rect x="26" y="49" width="12" height="5" rx="2" fill="var(--muted)"/><path d="M28 54v6M32 54v8M36 54v6" stroke="var(--bloom)" stroke-width="2.500" stroke-linecap="round"/>';
+    if (id === 'clap') s += '<circle cx="32" cy="32" r="26" fill="none" stroke="var(--bloom)" stroke-width="4"/><circle cx="32" cy="32" r="14" fill="var(--tint)" stroke="var(--accent)" stroke-width="4"/>';
+    if (id === 'fingers') s += '<circle cx="10" cy="40" r="6" fill="var(--line)"/><circle cx="21" cy="26" r="6" fill="var(--lantern)"/><circle cx="33" cy="20" r="6" fill="var(--line)"/><circle cx="45" cy="26" r="6" fill="var(--line)"/><circle cx="55" cy="40" r="6" fill="var(--line)"/><path d="M14 54h36" stroke="var(--line)" stroke-width="4" stroke-linecap="round"/>';
+    if (id === 'memory') s += '<rect x="4" y="12" width="26" height="38" rx="5" fill="var(--tint)" stroke="var(--line)" stroke-width="2"/><rect x="34" y="12" width="26" height="38" rx="5" fill="var(--surface)" stroke="var(--accent)" stroke-width="3"/><circle cx="47" cy="31" r="8" fill="var(--bloom)"/><circle cx="17" cy="31" r="5" fill="none" stroke="var(--line)" stroke-width="3"/>';
+    if (id === 'petals') s += '<circle cx="32" cy="14" r="11" fill="var(--p1)"/><circle cx="50" cy="32" r="11" fill="var(--p2)"/><circle cx="32" cy="50" r="11" fill="var(--p3)"/><circle cx="14" cy="32" r="11" fill="var(--p4)"/>';
+    return s + '</svg>';
+  }
+  $('petals').innerHTML = (function () {
+    var s = '';
+    for (var i = 0; i < 8; i++) s += '<ellipse cx="150" cy="82" rx="34" ry="62" fill="var(--bloom)" fill-opacity=".55" stroke="var(--bloom)" stroke-width="3" transform="rotate(' + (i * 45) + ' 150 150)"/>';
+    return s;
+  })();
+  $('padCore').innerHTML = lotus('', 'var(--bloom)');
+
+  /* ---------- 字體、版面、聲音 ---------- */
+  var sizeNames = ['標準', '大', '特大'];
+  var size = parseInt(store.get('jxsize') || '0', 10) || 0;
+  function applySize() {
+    var root = document.documentElement;
+    if (size === 0) root.removeAttribute('data-size'); else root.setAttribute('data-size', String(size));
+    $('sizeBtn').textContent = '字體：' + sizeNames[size];
+    store.set('jxsize', String(size));
+  }
+  $('sizeBtn').addEventListener('click', function () { size = (size + 1) % 3; applySize(); });
+  applySize();
+
+  var view = store.get('jxview') || '';
+  if (view !== 'phone' && view !== 'desktop') view = window.innerWidth >= 900 ? 'desktop' : 'phone';
+  function markSeg(id, val) {
+    var bs = $(id).children;
+    for (var i = 0; i < bs.length; i++) bs[i].setAttribute('aria-pressed', bs[i].getAttribute('data-v') === String(val) ? 'true' : 'false');
+  }
+  function segDisable(id, on) {
+    var bs = $(id).children;
+    for (var i = 0; i < bs.length; i++) bs[i].disabled = on;
+  }
+  function bindSeg(id, onPick) {
+    $(id).addEventListener('click', function (e) {
+      var b = e.target.closest('button');
+      if (!b || b.disabled) return;
+      var v = b.getAttribute('data-v');
+      markSeg(id, v);
+      onPick(parseInt(v, 10));
+    });
+  }
+  function applyView() {
+    document.documentElement.setAttribute('data-view', view);
+    markSeg('segView', view);
+    store.set('jxview', view);
+  }
+  bindSeg('segView', function () {});
+  $('segView').addEventListener('click', function (e) {
+    var b = e.target.closest('button');
+    if (!b) return;
+    view = b.getAttribute('data-v');
+    applyView();
+  });
+  applyView();
+
+  var soundOn = store.get('jxsound') === '1';
+  var canSpeak = 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined';
+  var zhVoices = [], voiceChoice = store.get('jxvoice') || 'auto', speakTok = 0, speakTimer = 0, maleAuto = false;
+  var MALE_RE = /yunjhe|zhiwei|male|男|yunxi|yunyang|danny|aaron/i;
+  var SAMPLE = '您好，我們一起，慢慢地呼吸。';
+  var SPOKEN = {
+    breath: '我們一起慢慢呼吸。花朵變大的時候，慢慢吸氣。花朵變小的時候，慢慢吐氣。照自己的節奏就好。',
+    clouds: '心裡常常會冒出各種念頭，這很自然。輕輕點一下雲朵，就讓它飄走。',
+    lantern: '想一想，今天有哪些小事，讓您覺得安心，或是開心。請選三項，每選一項，就點亮一盞燈。',
+    clap: '看著外面的圈圈慢慢縮小，縮到跟中間的圓一樣大的時候，輕輕點一下拍。點不準也沒關係，這裡沒有輸贏。',
+    fingers: '看到亮起來的手指，就在畫面上點一下，同時也動一動，自己的那一根手指。',
+    memory: '點開兩張卡片，找出一樣的花。翻錯了也沒關係，慢慢來。',
+    petals: '先看一看，花瓣亮起來的順序，把它記起來，再照著順序點一遍。看錯了也沒關係，可以再看一次。'
+  };
+  function spokenFor(id) { return SPOKEN[id] || ($('lead-' + id) ? $('lead-' + id).textContent : ''); }
+  function esc(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'); }
+  function langOf(v) { return (v.lang || '').toLowerCase().replace('_', '-').replace(/^cmn/, 'zh'); }
+  function isTw(v) { var l = langOf(v); return l === 'zh-tw' || l.indexOf('zh-hant') === 0; }
+  function scoreVoice(v) {
+    var n = v.name || '', l = langOf(v), sc;
+    if (isTw(v)) sc = 40; else if (l === 'zh-hk' || l === 'yue-hk') sc = 12; else if (l.indexOf('zh') === 0) sc = 6; else return -1;
+    if (/natural|neural|online/i.test(n)) sc += 25;
+    if (isTw(v) && MALE_RE.test(n)) sc += 30;
+    return sc;
+  }
+  function autoVoice() { var v = zhVoices[0] || null; maleAuto = !!(v && isTw(v) && MALE_RE.test(v.name || '')); return v; }
+  function currentVoice() {
+    if (voiceChoice !== 'auto') for (var i = 0; i < zhVoices.length; i++) if (zhVoices[i].name === voiceChoice) return zhVoices[i];
+    return autoVoice();
+  }
+  function voicePitch(v) {
+    if (voiceChoice !== 'auto' && v) return MALE_RE.test(v.name || '') ? 0.95 : 1;
+    return maleAuto ? 0.95 : 0.86;
+  }
+  function renderVoiceSel() {
+    var sel = $('voiceSel');
+    if (!sel) return;
+    var h = '<option value="auto">自動挑選（建議）</option>';
+    zhVoices.forEach(function (v) { h += '<option value="' + esc(v.name) + '">' + esc(v.name) + '（' + esc(v.lang) + '）</option>'; });
+    sel.innerHTML = h;
+    sel.value = voiceChoice;
+    if (sel.value !== voiceChoice) { voiceChoice = 'auto'; sel.value = 'auto'; }
+    var v = currentVoice(), note;
+    if (!zhVoices.length) note = '這台裝置沒有找到中文語音，聽說明可能沒有聲音。';
+    else if (voiceChoice === 'auto') note = maleAuto ? '目前使用：' + v.name + '（男聲）。' : '這台裝置上找不到台灣男聲，已用「' + v.name + '」搭配較低沉的語調。電腦可改用 Edge 瀏覽器，通常有更自然的男聲。';
+    else note = '目前使用：' + v.name + '。';
+    $('voiceNote').textContent = note;
+  }
+  function loadVoices() {
+    if (!canSpeak) return;
+    try {
+      zhVoices = (speechSynthesis.getVoices() || []).filter(function (v) { return scoreVoice(v) >= 0; }).sort(function (a, b) { return scoreVoice(b) - scoreVoice(a); });
+    } catch (e) { zhVoices = []; }
+    renderVoiceSel();
+  }
+  if (canSpeak) {
+    loadVoices();
+    try { speechSynthesis.onvoiceschanged = loadVoices; } catch (e) {}
+    $('voiceSel').addEventListener('change', function () { voiceChoice = $('voiceSel').value; store.set('jxvoice', voiceChoice); renderVoiceSel(); speak(SAMPLE); });
+    $('voiceTry').addEventListener('click', function () { speak(SAMPLE); });
+  } else {
+    Array.prototype.forEach.call(document.querySelectorAll('.vbtn'), function (b) { b.hidden = true; });
+    $('voiceBox').hidden = true;
+  }
+  function stopSpeak() {
+    speakTok++; clearTimeout(speakTimer);
+    try { if (canSpeak) speechSynthesis.cancel(); } catch (e) {}
+  }
+  /* 一句一句慢慢唸，句子之間停頓一下 */
+  function speak(text) {
+    if (!canSpeak || !text) return;
+    stopSpeak();
+    var parts = (text.match(/[^。！？!?；;]+[。！？!?；;]?/g) || []).map(function (t) { return t.trim(); }).filter(Boolean);
+    var tok = speakTok, v = currentVoice(), pitch = voicePitch(v);
+    (function next(i) {
+      if (tok !== speakTok || i >= parts.length) return;
+      var u = new SpeechSynthesisUtterance(parts[i]), moved = false, wd = 0;
+      u.lang = 'zh-TW'; if (v) u.voice = v;
+      u.rate = 0.82; u.pitch = pitch; u.volume = 1;
+      function adv() { if (moved) return; moved = true; clearTimeout(wd); speakTimer = setTimeout(function () { next(i + 1); }, 750); }
+      u.onend = adv; u.onerror = adv;
+      wd = setTimeout(adv, parts[i].length * 500 + 4000);
+      try { speechSynthesis.speak(u); } catch (e) { adv(); }
+    })(0);
+  }
+  function say(text) { if (soundOn) speak(text); }
+  function applySound() {
+    $('soundBtn').textContent = '聲音：' + (soundOn ? '開' : '關');
+    store.set('jxsound', soundOn ? '1' : '0');
+  }
+  $('soundBtn').addEventListener('click', function () {
+    soundOn = !soundOn;
+    applySound();
+    if (soundOn) { auStart(true); speak('聲音已經打開了'); } else { auStop(); stopSpeak(); }
+  });
+  applySound();
+
+  var motion = store.get('jxmotion');
+  if (motion !== '0' && motion !== '1') motion = reduce ? '0' : '1';
+  function applyMotion() {
+    document.documentElement.setAttribute('data-motion', motion === '1' ? 'on' : 'off');
+    $('motionBtn').textContent = '動畫：' + (motion === '1' ? '開' : '關');
+    store.set('jxmotion', motion);
+  }
+  $('motionBtn').addEventListener('click', function () { motion = motion === '1' ? '0' : '1'; applyMotion(); });
+  applyMotion();
+
+  /* ---------- 打卡與連續天數 ---------- */
+  var DAYN = ['日', '一', '二', '三', '四', '五', '六'];
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+  function dayKey(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+  function addDays(d, n) { return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n); }
+  function getLog() { try { var l = JSON.parse(store.get('jxlog') || '{}'); return l && typeof l === 'object' ? l : {}; } catch (e) { return {}; } }
+  function saveLog(l) { store.set('jxlog', JSON.stringify(l)); }
+  function doneToday(id) { var l = getLog(); var a = (l.days || {})[dayKey(new Date())] || []; return a.indexOf(id) >= 0; }
+  function todayCount() { var l = getLog(); return ((l.days || {})[dayKey(new Date())] || []).length; }
+  function streakDays() {
+    var days = getLog().days || {};
+    var d = new Date(), n = 0;
+    if (!(days[dayKey(d)] && days[dayKey(d)].length)) d = addDays(d, -1);
+    while (days[dayKey(d)] && days[dayKey(d)].length) { n++; d = addDays(d, -1); }
+    return n;
+  }
+  function checkIn(id) {
+    var l = getLog(); l.days = l.days || {};
+    var k = dayKey(new Date()), a = l.days[k] || [];
+    var first = a.length === 0;
+    if (a.indexOf(id) < 0) a.push(id);
+    l.days[k] = a; saveLog(l);
+    return first;
+  }
+  function saveGratitude(list) {
+    var l = getLog(); l.grat = l.grat || {};
+    l.grat[dayKey(new Date())] = list; saveLog(l);
+  }
+
+  /* ---------- 每日主題 ---------- */
+  var THEMES = [
+    { name: '靜心休息日', line: '今天不趕時間，慢慢呼吸，讓心休息一下。', games: ['breath', 'clouds', 'lantern'] },
+    { name: '專注的一週', line: '新的一週，先讓心穩下來。', games: ['breath', 'clap', 'petals'] },
+    { name: '放下煩惱', line: '把心裡的念頭，像雲一樣放走。', games: ['clouds', 'breath', 'memory'] },
+    { name: '手腦靈活', line: '動動手指，也動動腦。', games: ['fingers', 'memory', 'clap'] },
+    { name: '放鬆身心', line: '讓肩膀和呼吸一起慢下來。', games: ['breath', 'fingers', 'clouds'] },
+    { name: '感恩的日子', line: '想一想今天的小確幸。', games: ['lantern', 'breath', 'petals'] },
+    { name: '和家人連結', line: '玩完，把感恩分享給家人。', games: ['lantern', 'memory', 'fingers'] }
+  ];
+
+  /* ---------- 遊戲資料 ---------- */
+  var ORDER = ['breath', 'clouds', 'lantern', 'clap', 'fingers', 'memory', 'petals'];
+  var GAMES = {
+    breath: { title: '跟著花朵呼吸', desc: '花開花合，慢慢吸氣、吐氣',
+      fact: function () { return '你剛剛慢慢呼吸了 ' + B.total + ' 次。放慢呼吸時，身體比較容易放鬆。不少研究指出，規律練習靜心，有助於減輕壓力感，也讓睡前更容易安靜下來。'; } },
+    clouds: { title: '讓雲朵飄走', desc: '輕點雲朵，放下心裡的念頭',
+      fact: '念頭來了又走，不用趕走它，也不用抓著它。練習看著念頭經過，有助於專注，心裡也會比較有空間。' },
+    lantern: { title: '點亮感恩的燈', desc: '想想今天的三件小確幸',
+      fact: '冥想不只是在安靜中練習，更是在日常生活中，學會感受美好、珍惜當下，讓感恩自然流動，讓愛與家人朋友的連結更加靠近。' },
+    clap: { title: '跟著節拍拍手', desc: '圈圈縮小時點一下，練習手眼協調',
+      fact: '跟著節拍拍手，需要眼睛看、手去動、心裡專注。這樣的小練習，讓注意力回到現在，也讓身體和心情一起暖起來。' },
+    fingers: { title: '左右手手指操', desc: '亮起來的手指，點一點動一動',
+      fact: '手指動一動，手和腦會一起忙起來。左右手輪流練習，可以讓動作變靈活，也讓人更專注在當下。' },
+    memory: { title: '記憶配對花園', desc: '翻開卡片，找出一樣的花',
+      fact: '把注意力放在眼前的每一張花卡，就是一種專注練習。記不起來也沒關係，慢慢看、慢慢找，享受過程就好。' },
+    petals: { title: '按順序點亮花瓣', desc: '看清順序，記起來再點一遍',
+      fact: '先靜靜看，再用心記，最後一步一步做出來。這樣的專注，和冥想時把心帶回呼吸，是同一件事。' }
+  };
+
+  /* ---------- 換頁 ---------- */
+  var screens = ['onboard', 'map'].concat(ORDER, ['share']);
+  function stopAll() { ORDER.forEach(function (id) { GAMES[id].stop(); }); stopSpeak(); }
+  function show(id) {
+    stopAll();
+    screens.forEach(function (s) { $('s-' + s).hidden = (s !== id); });
+    if (id === 'map') renderMap();
+    if (id === 'share') renderShare();
+    if (id === 'onboard') obRender(0);
+    if (GAMES[id]) {
+      GAMES[id].reset();
+      if (soundOn) speak(spokenFor(id));
+    }
+    if (id !== 'map' && id !== 'onboard') setBanner(id);
+    auLevel(GAMES[id] ? 0.55 : 1);
+    window.scrollTo(0, 0);
+    var h = $('s-' + id).querySelector('h1, h2');
+    if (h) h.focus({ preventScroll: true });
+  }
+  document.addEventListener('click', function (e) {
+    var g = e.target.closest('[data-go]');
+    if (g) { show(g.getAttribute('data-go')); return; }
+    var s = e.target.closest('[data-speak]');
+    if (s) speak(spokenFor(s.getAttribute('data-speak')));
+  });
+  function reveal(el) {
+    setTimeout(function () {
+      try { el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' }); } catch (e) {}
+    }, 150);
+  }
+  function finishGame(id, extra) {
+    var first = checkIn(id);
+    var n = streakDays();
+    var fact = typeof GAMES[id].fact === 'function' ? GAMES[id].fact() : GAMES[id].fact;
+    var html = '<div class="msg">' + (first ? '今天的花開了！' : '又完成一次，真棒！') + '</div>';
+    if (extra) html += '<p class="lead" style="text-align:center">' + extra + '</p>';
+    html += '<div class="fact"><span class="tag">冥想小知識</span><p>' + fact + '</p></div>';
+    html += '<p class="count">連續練習 ' + n + ' 天</p>';
+    html += '<div class="row"><button class="btn ghost" type="button" data-go="' + id + '">再玩一次</button><button class="btn" type="button" data-go="map">回花園</button></div>';
+    var box = $('res-' + id);
+    box.innerHTML = html; box.hidden = false;
+    say(first ? '很棒，今天的花開了' : '很好，又完成了一次');
+    if (soundOn && AU.ambient) bowlSound(0.14);
+    reveal(box);
+  }
+
+  /* ---------- 新手引導 ---------- */
+  var SLIDES = [
+    { t: '點一下就可以', p: '畫面上的圓形或長條按鈕，用手指輕輕點一下就會有反應。點錯了也沒關係，不會扣分。',
+      svg: '<svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="54" fill="none" stroke="var(--accent)" stroke-opacity=".4" stroke-width="3"/><circle cx="60" cy="60" r="42" fill="var(--tint)" stroke="var(--accent)" stroke-width="4"/><circle cx="60" cy="60" r="22" fill="var(--accent)"/></svg>' },
+    { t: '字體可以放大', p: '畫面上方有「字體」按鈕，點一下變大，再點一下變更大，看得清楚最重要。',
+      svg: '<svg viewBox="0 0 160 110" aria-hidden="true"><text x="22" y="72" font-size="40" font-family="serif" fill="var(--fg)">字</text><text x="72" y="88" font-size="72" font-family="serif" fill="var(--accent)">字</text></svg>' },
+    { t: '可以聽說明', p: '點「聲音」可以聽到花園裡的流水、鳥鳴和風鈴聲，也可以在每一關點「聽說明」，手機會把說明唸給您聽。不想聽可以關掉。',
+      svg: '<svg viewBox="0 0 120 120" aria-hidden="true"><path d="M18 46h22l28-22v72L40 74H18z" fill="var(--accent)"/><path d="M80 44c9 9 9 23 0 32M92 32c15 15 15 41 0 56" fill="none" stroke="var(--accent)" stroke-width="6" stroke-linecap="round"/></svg>' },
+    { t: '每天一朵花', p: '每天完成任何一個遊戲，花園就會長出一朵花。不用比賽，也沒有排名，慢慢來就好。',
+      svg: lotus('', 'var(--bloom)') }
+  ];
+  var obIdx = 0;
+  function obRender(i) {
+    obIdx = i;
+    var s = SLIDES[i];
+    $('slide').innerHTML = s.svg + '<h2>' + s.t + '</h2><p class="lead">' + s.p + '</p>';
+    var d = '';
+    for (var k = 0; k < SLIDES.length; k++) d += '<span' + (k === i ? ' class="on"' : '') + '></span>';
+    $('pager').innerHTML = d;
+    $('obPrev').hidden = i === 0;
+    $('obNext').textContent = i === SLIDES.length - 1 ? '進入花園' : '下一步';
+    if (soundOn) speak(s.t + '。' + s.p);
+  }
+  $('obPrev').addEventListener('click', function () { if (obIdx > 0) obRender(obIdx - 1); });
+  $('obNext').addEventListener('click', function () {
+    if (obIdx < SLIDES.length - 1) { obRender(obIdx + 1); return; }
+    store.set('jxseen', '1');
+    show('map');
+  });
+
+  /* ---------- 花園場景 ---------- */
+  var lite = !!((navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) || (navigator.deviceMemory && navigator.deviceMemory <= 2));
+  var PAL = {
+    dawn: { sk1: '#BFD8E6', sk2: '#F7E1DC', sun: '#F6C7A3', sunx: 105, suny: 198, sunr: 30, mt1: '#A9C2CC', mt2: '#8FB0B3', gr1: '#A9D2B4', gr2: '#86BA98', w1: '#B5D7E3', w2: '#DDF0F4', rim: '#B9C4C2', sand: '#EFE6D2', sandl: '#D8CBB0', cloud: '#FFFFFF', bam: '#6FAE86', bamd: '#4F8E68', stone: '#CBD3D1', bed: '#9BCBA7', pad: '#69B88A', ov: '#FFFFFF', ova: 0 },
+    day: { sk1: '#8EC9EA', sk2: '#E3F3F8', sun: '#F7CC5E', sunx: 330, suny: 80, sunr: 26, mt1: '#86BBA9', mt2: '#6CAA92', gr1: '#86C792', gr2: '#66AE7C', w1: '#6EC1D6', w2: '#A9E2EE', rim: '#C4CCC8', sand: '#F0E4C6', sandl: '#D9C8A0', cloud: '#FFFFFF', bam: '#5DAA78', bamd: '#3F8A5C', stone: '#D5DBD6', bed: '#7AC08A', pad: '#5FAE7E', ov: '#FFD98A', ova: 0.1 },
+    dusk: { sk1: '#6C7DB4', sk2: '#F8B48E', sun: '#F68B58', sunx: 110, suny: 214, sunr: 40, mt1: '#7A7AA0', mt2: '#5F6F8E', gr1: '#7FA58B', gr2: '#628A76', w1: '#8A97C0', w2: '#F0A987', rim: '#9AA0A6', sand: '#E6D3B6', sandl: '#C9B08E', cloud: '#F9CBB2', bam: '#4F8A6C', bamd: '#37705A', stone: '#B8B8B8', bed: '#6F9C80', pad: '#4F8A6C', ov: '#FF8F52', ova: 0.14 },
+    night: { sk1: '#0E1B38', sk2: '#2A4570', sun: '#F3EED2', sunx: 330, suny: 82, sunr: 22, mt1: '#233A58', mt2: '#1A304C', gr1: '#23524C', gr2: '#18403E', w1: '#1C3E5E', w2: '#2F5F86', rim: '#4E6070', sand: '#6F6E68', sandl: '#55544F', cloud: '#3B5379', bam: '#2F6A58', bamd: '#1F5144', stone: '#6B7C86', bed: '#1E4A44', pad: '#2F7A62', ov: '#0A1630', ova: 0.22 }
+  };
+  var SEA = {
+    spring: { name: '春', line: '櫻花開了。', can: ['#F6B3C7', '#F2A0BA', '#F9CCDA'], fall: '#F6B3C7' },
+    summer: { name: '夏', line: '荷花正盛開。', can: ['#4E9E6B', '#3F8A5C', '#66B380'], fall: '#F8D3DE' },
+    autumn: { name: '秋', line: '楓葉紅了。', can: ['#E07B39', '#C8553D', '#EBA04A'], fall: '#E07B39' },
+    winter: { name: '冬', line: '梅花靜靜地開。', can: null, fall: '#FBE4EA' }
+  };
+  var GREET = { dawn: '早安，晨霧裡的花園很安靜。', day: '午安，陽光正暖，來花園坐坐。', dusk: '傍晚好，晚霞把花園染成橘色。', night: '晚安，月光下的花園，適合慢慢呼吸。' };
+  function getTod(d) {
+    var h = d.getHours() + d.getMinutes() / 60;
+    if (h >= 5 && h < 9) return 'dawn';
+    if (h >= 9 && h < 16.5) return 'day';
+    if (h >= 16.5 && h < 19) return 'dusk';
+    return 'night';
+  }
+  function getSeason(d) {
+    var m = d.getMonth() + 1;
+    return m >= 3 && m <= 5 ? 'spring' : m >= 6 && m <= 8 ? 'summer' : m >= 9 && m <= 11 ? 'autumn' : 'winter';
+  }
+  function totalDays() {
+    var days = getLog().days || {}, n = 0;
+    Object.keys(days).forEach(function (k) { if (days[k] && days[k].length) n++; });
+    return n;
+  }
+  function bestStreak() {
+    var days = getLog().days || {};
+    var keys = Object.keys(days).filter(function (k) { return days[k] && days[k].length; }).sort();
+    var best = 0, run = 0, prev = null;
+    keys.forEach(function (k) {
+      var p = k.split('-'), d = new Date(+p[0], +p[1] - 1, +p[2]);
+      if (prev && Math.round((d - prev) / 86400000) === 1) run++; else run = 1;
+      if (run > best) best = run;
+      prev = d;
+    });
+    return best;
+  }
+  function unlockHint(best) {
+    var T = [[3, '池塘會有錦鯉來訪'], [7, '池畔會點亮石燈籠'], [14, '園裡會蓋起涼亭'], [30, '池上會架起小橋']];
+    for (var i = 0; i < T.length; i++) if (best < T[i][0]) return '連續練習滿 ' + T[i][0] + ' 天，' + T[i][1] + '（還差 ' + (T[i][0] - best) + ' 天）。';
+    return '花園的景物都解鎖了，謝謝您每天的陪伴。';
+  }
+  function lotusG(color) {
+    var s = '';
+    [-60, -30, 0, 30, 60].forEach(function (a) { s += '<ellipse cx="0" cy="-14" rx="7" ry="15" fill="' + color + '" fill-opacity=".85" stroke="' + color + '" stroke-width="2" transform="rotate(' + a + ')"/>'; });
+    return s + '<circle cx="0" cy="-2" r="5" fill="#F2B84B"/>';
+  }
+  function flowerSpots() {
+    var pts = [];
+    [[0.84, [-60, -45, -30, -15, 0, 15, 30, 45, 60]], [0.84, [120, 135, 150, 165, 180, 195, 210, 225, 240]], [0.58, [-40, -20, 0, 20, 40]], [0.58, [140, 160, 180, 200, 220]]].forEach(function (g) {
+      g[1].forEach(function (a) { var r = a * Math.PI / 180; pts.push([200 + Math.cos(r) * 150 * g[0], 370 + Math.sin(r) * 80 * g[0]]); });
+    });
+    var out = [];
+    for (var i = 0; i < pts.length; i++) out.push(pts[(i * 11) % pts.length]);
+    return out;
+  }
+  function butterfly(i, color) {
+    return '<g class="bf moving f' + (1 + i % 3) + '" style="animation-delay:' + (-(i * 7.3)) + 's;animation-duration:' + (24 + i * 4) + 's"><g class="wg"><ellipse cx="-5" cy="-3" rx="6" ry="4.5" fill="' + color + '"/><ellipse cx="5" cy="-3" rx="6" ry="4.5" fill="' + color + '"/><ellipse cx="-4" cy="3" rx="4" ry="3" fill="' + color + '" opacity=".85"/><ellipse cx="4" cy="3" rx="4" ry="3" fill="' + color + '" opacity=".85"/></g><rect x="-1" y="-6" width="2" height="12" rx="1" fill="#33463F"/></g>';
+  }
+  function koiG(c1, c2, cls, x, y) {
+    return '<g transform="translate(' + x + ' ' + y + ')"><g class="koi' + cls + '"><path d="M-9 0 L-18 -5 L-16 0 L-18 5Z" fill="' + c1 + '"/><ellipse rx="11" ry="4.6" fill="' + c1 + '"/><circle cx="-2" cy="-1" r="2.6" fill="' + c2 + '"/><circle cx="6" cy="-1.5" r="1" fill="#16302B"/></g></g>';
+  }
+  function fallShape(season, color) {
+    if (season === 'autumn') return '<path d="M0 -5 L2 -2 L5 -3 L3 0 L5 3 L1 3 L0 6 L-1 3 L-5 3 L-3 0 L-5 -3 L-2 -2Z" fill="' + color + '"/>';
+    return '<ellipse rx="3.6" ry="2.3" fill="' + color + '"/>';
+  }
+  function buildScene(o) {
+    var P = PAL[o.tod], S = SEA[o.season], night = o.tod === 'night', s = '', i;
+    s += '<svg viewBox="0 0 400 640" preserveAspectRatio="xMidYMid slice" aria-hidden="true">';
+    s += '<defs><linearGradient id="gSkyS" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + P.sk1 + '"/><stop offset="1" stop-color="' + P.sk2 + '"/></linearGradient>';
+    s += '<linearGradient id="gGrS" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + P.gr1 + '"/><stop offset="1" stop-color="' + P.gr2 + '"/></linearGradient></defs>';
+    s += '<rect width="400" height="300" fill="url(#gSkyS)"/>';
+    if (night) for (i = 0; i < (o.lite ? 9 : 16); i++) s += '<circle class="star" cx="' + ((i * 97 + 23) % 380 + 10) + '" cy="' + ((i * 53 + 11) % 170 + 10) + '" r="1.3" fill="#FFFFFF" style="animation-delay:' + (-(i % 5) * 0.7) + 's"/>';
+    s += '<circle cx="' + P.sunx + '" cy="' + P.suny + '" r="' + (P.sunr + 30) + '" fill="' + P.sun + '" opacity=".1"/>';
+    s += '<circle cx="' + P.sunx + '" cy="' + P.suny + '" r="' + (P.sunr + 14) + '" fill="' + P.sun + '" opacity=".18"/>';
+    s += '<circle cx="' + P.sunx + '" cy="' + P.suny + '" r="' + P.sunr + '" fill="' + P.sun + '"/>';
+    [[70, 48, 0], [275, 104, -14], [110, 152, -26]].forEach(function (c) {
+      s += '<g transform="translate(' + c[0] + ' ' + c[1] + ')"><g class="cld" style="animation-delay:' + c[2] + 's"><ellipse cx="0" cy="0" rx="34" ry="10" fill="' + P.cloud + '" opacity=".92"/><circle cx="-10" cy="-8" r="12" fill="' + P.cloud + '" opacity=".92"/><circle cx="9" cy="-11" r="15" fill="' + P.cloud + '" opacity=".92"/></g></g>';
+    });
+    s += '<path d="M0 262 L0 214 Q50 168 105 206 Q150 150 215 196 Q275 160 335 200 Q370 180 400 196 L400 262Z" fill="' + P.mt1 + '"/>';
+    s += '<path d="M0 262 L0 236 Q70 196 150 232 Q230 204 300 236 Q350 214 400 230 L400 262Z" fill="' + P.mt2 + '"/>';
+    if (o.tod === 'dawn') s += '<ellipse class="mist" cx="120" cy="262" rx="140" ry="16" fill="#FFFFFF" opacity=".4"/><ellipse class="mist" cx="300" cy="238" rx="110" ry="12" fill="#FFFFFF" opacity=".3" style="animation-delay:-9s"/>';
+    s += '<path d="M0 262 Q100 236 200 246 T400 240 L400 640 L0 640Z" fill="url(#gGrS)"/>';
+    if (o.best >= 14) {
+      s += '<g class="u-pavilion" transform="translate(200 250)"><rect x="-28" y="-6" width="56" height="6" fill="#CDB892"/><rect x="-23" y="-32" width="4" height="26" fill="#8A5A44"/><rect x="19" y="-32" width="4" height="26" fill="#8A5A44"/><path d="M-40 -30 L0 -56 L40 -30Z" fill="#6B4B3E"/><rect x="-42" y="-32" width="84" height="4" rx="2" fill="#5A3E33"/>' + (night ? '<rect x="-8" y="-24" width="16" height="14" rx="3" fill="#FFD27A" opacity=".85"/>' : '') + '</g>';
+    }
+    s += '<g class="sway" style="animation-duration:8s"><path d="M62 268 Q56 236 64 205" fill="none" stroke="#7B5A4A" stroke-width="9" stroke-linecap="round"/>';
+    if (S.can) {
+      [[64, 184, 30], [38, 202, 22], [90, 201, 24], [58, 163, 20], [84, 168, 22]].forEach(function (c, k) { s += '<circle cx="' + c[0] + '" cy="' + c[1] + '" r="' + c[2] + '" fill="' + S.can[k % 3] + '"/>'; });
+    } else {
+      s += '<path d="M64 205 L40 170M64 205 L90 168M64 196 L64 150M52 182 L30 176M78 182 L98 178" stroke="#7B5A4A" stroke-width="3" stroke-linecap="round" fill="none"/>';
+      [[40, 170], [90, 168], [64, 150], [30, 176], [98, 178], [52, 160], [76, 158], [46, 188], [84, 190]].forEach(function (c) { s += '<circle cx="' + c[0] + '" cy="' + c[1] + '" r="5" fill="#FBE4EA" stroke="#E58FA8" stroke-width="1.5"/>'; });
+    }
+    s += '</g>';
+    [[296, 60, 268], [318, 95, 276], [342, 38, 264], [366, 110, 280], [388, 75, 270]].forEach(function (b, k) {
+      s += '<g class="sway" style="animation-delay:' + (-k * 1.3) + 's"><rect x="' + (b[0] - 3) + '" y="' + b[1] + '" width="6" height="' + (b[2] - b[1]) + '" rx="3" fill="' + P.bam + '"/>';
+      for (var y = b[1] + 22; y < b[2] - 6; y += 34) s += '<rect x="' + (b[0] - 3.5) + '" y="' + y + '" width="7" height="2.5" rx="1" fill="' + P.bamd + '"/>';
+      s += '<ellipse cx="' + (b[0] - 10) + '" cy="' + (b[1] + 8) + '" rx="10" ry="3" fill="' + P.bam + '" transform="rotate(-25 ' + (b[0] - 10) + ' ' + (b[1] + 8) + ')"/><ellipse cx="' + (b[0] + 10) + '" cy="' + (b[1] + 18) + '" rx="10" ry="3" fill="' + P.bam + '" transform="rotate(25 ' + (b[0] + 10) + ' ' + (b[1] + 18) + ')"/></g>';
+    });
+    s += '<rect x="12" y="452" width="176" height="124" rx="18" fill="' + P.sand + '"/>';
+    for (i = 0; i < 5; i++) s += '<path d="M24 ' + (472 + i * 20) + ' q38 -8 76 0 t76 0" fill="none" stroke="' + P.sandl + '" stroke-width="2" stroke-linecap="round"/>';
+    [[58, 534, 18], [142, 506, 12]].forEach(function (c) { [1.6, 2.4, 3.2].forEach(function (m) { s += '<ellipse cx="' + c[0] + '" cy="' + c[1] + '" rx="' + (c[2] * m) + '" ry="' + (c[2] * m * 0.6) + '" fill="none" stroke="' + P.sandl + '" stroke-width="2"/>'; }); });
+    s += '<ellipse cx="58" cy="534" rx="18" ry="11" fill="#8E9A9A"/><ellipse cx="65" cy="530" rx="9" ry="5.5" fill="#A7B2B0"/><ellipse cx="142" cy="506" rx="12" ry="8" fill="#8E9A9A"/>';
+    s += '<rect x="228" y="474" width="164" height="116" rx="18" fill="' + P.bed + '" stroke="#FFFFFF" stroke-opacity=".3" stroke-width="2"/>';
+    var fcol = ['#E26D93', '#F2B84B', '#FFFFFF', '#7FB2F0'];
+    for (i = 0; i < 12; i++) s += '<circle cx="' + (250 + (i % 4) * 40 + (Math.floor(i / 4) % 2) * 10) + '" cy="' + (500 + Math.floor(i / 4) * 32) + '" r="6.5" fill="' + fcol[i % 4] + '"/><circle cx="' + (250 + (i % 4) * 40 + (Math.floor(i / 4) % 2) * 10) + '" cy="' + (500 + Math.floor(i / 4) * 32) + '" r="2.4" fill="' + (i % 4 === 1 ? '#FFFFFF' : '#F2B84B') + '"/>';
+    [[200, 620, 16, 7], [186, 594, 14, 6], [208, 568, 15, 6.5], [190, 542, 13, 6], [204, 516, 12, 5.5], [198, 492, 11, 5]].forEach(function (c) { s += '<ellipse cx="' + c[0] + '" cy="' + c[1] + '" rx="' + c[2] + '" ry="' + c[3] + '" fill="' + P.stone + '"/>'; });
+    s += '<ellipse cx="200" cy="374" rx="160" ry="88" fill="' + P.rim + '"/>';
+    for (i = 0; i < 22; i++) { var ra = i / 22 * Math.PI * 2; s += '<ellipse cx="' + (200 + Math.cos(ra) * 156).toFixed(1) + '" cy="' + (372 + Math.sin(ra) * 84).toFixed(1) + '" rx="9" ry="5.5" fill="' + P.stone + '"/>'; }
+    s += '<ellipse cx="200" cy="370" rx="150" ry="80" fill="' + P.w1 + '"/><ellipse cx="200" cy="362" rx="112" ry="52" fill="' + P.w2 + '" opacity=".5"/>';
+    [[120, 340, 26], [262, 352, 22], [150, 410, 20], [250, 408, 24]].forEach(function (c) { s += '<path d="M' + c[0] + ' ' + c[1] + ' h' + c[2] + '" stroke="#FFFFFF" stroke-opacity=".5" stroke-width="2" stroke-linecap="round"/>'; });
+    [[95, 350], [115, 402], [300, 345], [285, 404], [232, 426], [150, 432], [255, 316], [140, 324]].forEach(function (c) { s += '<ellipse cx="' + c[0] + '" cy="' + c[1] + '" rx="14" ry="7" fill="' + P.pad + '"/><path d="M' + c[0] + ' ' + c[1] + ' l9 -3" stroke="' + P.w1 + '" stroke-width="2"/>'; });
+    s += '<ellipse class="rip" cx="240" cy="392" rx="18" ry="8" fill="none" stroke="#FFFFFF" stroke-width="1.5" style="animation-delay:-2s"/><ellipse class="rip" cx="128" cy="376" rx="18" ry="8" fill="none" stroke="#FFFFFF" stroke-width="1.5" style="animation-delay:-5s"/>';
+    if (o.best >= 3) s += '<g class="u-koi">' + koiG('#F0833A', '#FFFFFF', '', 160, 350) + koiG('#FFFFFF', '#F0833A', ' k2', 250, 398) + '</g>';
+    if (o.best >= 7) s += '<g class="u-lantern" transform="translate(30 392)"><rect x="-9" y="0" width="18" height="6" rx="2" fill="' + P.stone + '"/><rect x="-4" y="-18" width="8" height="18" fill="' + P.stone + '"/><rect x="-11" y="-32" width="22" height="14" rx="2" fill="' + P.stone + '"/><rect x="-5" y="-29" width="10" height="8" fill="' + (night ? '#FFD27A' : '#E9D8A6') + '"/><path d="M-15 -32 L0 -46 L15 -32Z" fill="#7C8A90"/>' + (night ? '<circle cx="0" cy="-25" r="22" fill="#FFD27A" opacity=".28"/>' : '') + '</g>';
+    var fc = Math.min(o.total, 28), fs = flowerSpots(), fcols = ['#E26D93', '#F29BB5', '#F7C6D4'];
+    for (i = 0; i < fc; i++) s += '<g class="flw" transform="translate(' + fs[i][0].toFixed(1) + ' ' + (fs[i][1] + 7).toFixed(1) + ') scale(.5)">' + lotusG(fcols[i % 3]) + '</g>';
+    if (o.best >= 30) s += '<g class="u-bridge"><path d="M78 434 Q200 406 322 434" fill="none" stroke="#7A5440" stroke-width="13" stroke-linecap="round"/><path d="M78 434 Q200 406 322 434" fill="none" stroke="#B88660" stroke-width="8" stroke-linecap="round"/><path d="M84 426 Q200 396 316 426" fill="none" stroke="#7A5440" stroke-width="3" stroke-dasharray="2 9" stroke-linecap="round"/></g>';
+    s += '<g id="ripples"></g>';
+    if (o.tod !== 'night') {
+      var bcol = ['#F29A3C', '#F2D13C', '#6FA8F2', '#F28CAE', '#FFFFFF'], nb = Math.min(o.lite ? 3 : 5, 1 + Math.floor(o.streak / 2));
+      for (i = 0; i < nb; i++) s += butterfly(i, bcol[i]);
+      if (o.streak >= 3 && o.tod !== 'dusk') s += '<g class="dfly moving"><rect x="-10" y="-1" width="20" height="2" rx="1" fill="#2F7F9E"/><ellipse cx="-3" cy="-4" rx="8" ry="1.8" fill="#FFFFFF" opacity=".65" transform="rotate(-10 -3 -4)"/><ellipse cx="-3" cy="4" rx="8" ry="1.8" fill="#FFFFFF" opacity=".65" transform="rotate(10 -3 4)"/><ellipse cx="3" cy="-3" rx="7" ry="1.6" fill="#FFFFFF" opacity=".55"/><ellipse cx="3" cy="3" rx="7" ry="1.6" fill="#FFFFFF" opacity=".55"/></g>';
+      var nbd = o.streak >= 10 ? 2 : o.streak >= 5 ? 1 : 0;
+      for (i = 0; i < nbd; i++) s += '<g transform="translate(0 ' + (70 + i * 46) + ')"><g class="bird moving" style="animation-delay:' + (-8 - i * 12) + 's;animation-duration:' + (24 + i * 6) + 's"><path d="M0 0 q5 -7 10 0 q5 -7 10 0" fill="none" stroke="#33463F" stroke-width="2" stroke-linecap="round"/></g></g>';
+    }
+    if (night || o.tod === 'dusk') {
+      var nff = night ? (o.lite ? 6 : 10) : (o.lite ? 2 : 4), fp = [[60, 330], [120, 462], [300, 282], [340, 420], [230, 462], [180, 300], [90, 232], [270, 252], [40, 502], [350, 546]];
+      for (i = 0; i < nff; i++) s += '<g transform="translate(' + fp[i][0] + ' ' + fp[i][1] + ')"><g class="ff moving" style="animation-delay:' + (-i * 1.7) + 's;animation-duration:' + (8 + (i % 4)) + 's"><circle r="7" fill="#FFF3A0" opacity=".25"/><circle r="2.2" fill="#FFF3A0"/></g></g>';
+    }
+    var nf = o.lite ? 4 : 9;
+    for (i = 0; i < nf; i++) s += '<g class="fall moving" style="--x:' + ((i * 53 + 17) % 360 + 20) + 'px;--dx:' + ((i % 2 ? 1 : -1) * (30 + (i % 3) * 22)) + 'px;animation-duration:' + (15 + (i % 5) * 3) + 's;animation-delay:' + (-(i * 2.9)) + 's">' + fallShape(o.season, S.fall) + '</g>';
+    s += '<rect width="400" height="640" fill="' + P.ov + '" opacity="' + P.ova + '" pointer-events="none"/>';
+    return s + '</svg>';
+  }
+  function bannerSvg(o) {
+    var P = PAL[o.tod], S = SEA[o.season], s = '<svg viewBox="0 0 400 96" preserveAspectRatio="xMidYMid slice" aria-hidden="true">';
+    s += '<defs><linearGradient id="gSkyB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + P.sk1 + '"/><stop offset="1" stop-color="' + P.sk2 + '"/></linearGradient></defs>';
+    s += '<rect width="400" height="96" fill="url(#gSkyB)"/>';
+    s += '<circle cx="' + (P.sunx > 200 ? 340 : 70) + '" cy="28" r="' + Math.round(P.sunr / 2.2) + '" fill="' + P.sun + '"/>';
+    s += '<path d="M0 70 L0 52 Q50 20 105 50 Q150 14 215 46 Q275 20 335 50 Q370 36 400 46 L400 70Z" fill="' + P.mt1 + '"/><path d="M0 76 L0 62 Q70 40 150 62 Q230 44 300 62 Q350 50 400 60 L400 76Z" fill="' + P.mt2 + '"/>';
+    s += '<rect y="72" width="400" height="24" fill="' + P.gr1 + '"/><ellipse cx="200" cy="86" rx="96" ry="9" fill="' + P.w1 + '"/>';
+    [[352, 14, 78], [366, 28, 80], [380, 8, 78]].forEach(function (b) { s += '<rect x="' + (b[0] - 2.5) + '" y="' + b[1] + '" width="5" height="' + (b[2] - b[1]) + '" rx="2.5" fill="' + P.bam + '"/>'; });
+    s += '<g transform="translate(60 70)"><circle r="9" fill="' + (S.can ? S.can[0] : '#FBE4EA') + '"/><rect x="-1.5" y="6" width="3" height="14" fill="#7B5A4A"/></g>';
+    for (var i = 0; i < (o.lite ? 2 : 4); i++) s += '<g class="fallb moving" style="--x:' + (40 + i * 90) + 'px;--dx:' + ((i % 2 ? 1 : -1) * 26) + 'px;animation-delay:' + (-i * 2.3) + 's">' + fallShape(o.season, S.fall) + '</g>';
+    return s + '</svg>';
+  }
+  function setBanner(id) {
+    var p = $('s-' + id), b = p.querySelector('.banner'), now = new Date();
+    if (!b) { b = document.createElement('div'); b.className = 'banner'; p.insertBefore(b, p.firstChild); }
+    b.innerHTML = bannerSvg({ tod: getTod(now), season: getSeason(now), lite: lite });
+  }
+  var SPOTPOS = { clouds: [190, 58, '天空雲朵'], fingers: [330, 160, '竹林手指操'], memory: [64, 250, '石桌配對'], lantern: [336, 300, '感恩石燈'], breath: [200, 370, '荷花池呼吸'], clap: [96, 505, '沙庭拍手'], petals: [304, 520, '花圃花瓣'] };
+  function buildSpots(rec) {
+    var h = '<div class="spots">';
+    ORDER.forEach(function (id) {
+      var p = SPOTPOS[id], isRec = rec.indexOf(id) >= 0, dn = doneToday(id);
+      h += '<button type="button" class="spot' + (isRec ? ' rec' : '') + (dn ? ' done' : '') + '" data-go="' + id + '" style="left:' + (p[0] / 4) + '%;top:' + (p[1] / 6.4) + '%" aria-label="' + GAMES[id].title + (isRec ? '，今日推薦' : '') + (dn ? '，今天已完成' : '') + '"><span class="ico">' + gameIcon(id) + '</span><span class="lbl">' + p[2] + '</span>' + (dn ? '<span class="chk" aria-hidden="true">✓</span>' : '') + (isRec && !dn ? '<span class="rtag" aria-hidden="true">推薦</span>' : '') + '</button>';
+    });
+    return h + '</div>';
+  }
+  $('scene').addEventListener('click', function (e) {
+    if (e.target.closest('.spot')) return;
+    var svg = $('scene').querySelector(':scope > svg'), g = $('ripples');
+    if (!svg || !g) return;
+    var r = svg.getBoundingClientRect();
+    var x = (e.clientX - r.left) / r.width * 400, y = (e.clientY - r.top) / r.height * 640;
+    if (Math.pow((x - 200) / 150, 2) + Math.pow((y - 370) / 80, 2) > 1.1) return;
+    var el = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+    el.setAttribute('class', 'rip tap');
+    el.setAttribute('cx', x.toFixed(1)); el.setAttribute('cy', y.toFixed(1));
+    el.setAttribute('rx', 8); el.setAttribute('ry', 4);
+    el.setAttribute('fill', 'none'); el.setAttribute('stroke', '#FFFFFF'); el.setAttribute('stroke-width', 2);
+    g.appendChild(el);
+    setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 2300);
+    if (soundOn) dripSound();
+  });
+
+  /* ---------- 花園地圖 ---------- */
+  function renderMap() {
+    var now = new Date(), tod = getTod(now), season = getSeason(now);
+    var n = streakDays(), cnt = todayCount(), best = bestStreak(), total = totalDays();
+    var days = getLog().days || {}, th = THEMES[now.getDay()];
+    var big = n > 0 ? '連續 ' + n + ' 天' : '今天開始吧';
+    var wk = '';
+    for (var i = 6; i >= 0; i--) {
+      var d = addDays(now, -i), done = !!(days[dayKey(d)] && days[dayKey(d)].length);
+      wk += '<div class="day' + (done ? ' done' : '') + (i === 0 ? ' today' : '') + '"><span class="dot">' + (done ? lotus('', 'var(--bloom)') : '') + '</span><span>' + (i === 0 ? '今天' : '週' + DAYN[d.getDay()]) + '</span></div>';
+    }
+    var msg = cnt > 0 ? '今天已經完成 ' + cnt + ' 個練習，花園開了一朵花。' : '今天還沒練習，從花園裡挑一個景點開始吧。';
+    $('streak').innerHTML = '<div class="big">' + big + '</div><div class="week">' + wk + '</div><p class="count">' + msg + '</p><p class="count">' + unlockHint(best) + '</p>';
+    $('theme').innerHTML = '<span class="tag">' + (now.getMonth() + 1) + ' 月 ' + now.getDate() + ' 日 星期' + DAYN[now.getDay()] + '　今日主題</span><span class="tname">' + th.name + '</span><span>' + th.line + '</span>';
+    $('scene').setAttribute('data-tod', tod);
+    $('scene').setAttribute('data-season', season);
+    $('scene').innerHTML = buildScene({ tod: tod, season: season, best: best, streak: n, total: total, lite: lite }) + buildSpots(th.games);
+    $('sceneCap').textContent = GREET[tod] + SEA[season].name + '天，' + SEA[season].line + '點一下水面，會有漣漪。';
+    function card(id, rec) {
+      var g = GAMES[id];
+      return '<button class="gcard" type="button" data-go="' + id + '">' + gameIcon(id) + '<span><span class="gt">' + g.title + '</span><span class="gd">' + g.desc + '</span><span class="gb">' + (rec ? '<span class="badge rec">今日推薦</span>' : '') + (doneToday(id) ? '<span class="badge done">今天完成</span>' : '') + '</span></span></button>';
+    }
+    $('recCards').innerHTML = th.games.map(function (id) { return card(id, true); }).join('');
+    $('moreCards').innerHTML = ORDER.filter(function (id) { return th.games.indexOf(id) < 0; }).map(function (id) { return card(id, false); }).join('');
+  }
+
+  /* ---------- 遊戲 1：呼吸 ---------- */
+  var LO = reduce ? 0.8 : 0.55;
+  var B = { secs: 4, total: 3, round: 0, running: false, timers: [], tick: null, lock: null };
+  function bClear() { B.timers.forEach(clearTimeout); B.timers = []; if (B.tick) { clearInterval(B.tick); B.tick = null; } }
+  function bScale(v, s) { var f = $('flower'); f.style.transition = 'transform ' + s + 's ease-in-out'; f.style.transform = 'scale(' + v + ')'; }
+  function bDots() { var h = ''; for (var i = 0; i < B.total; i++) h += '<span></span>'; $('dots').innerHTML = h; }
+  function bUpdate() {
+    var dots = $('dots').children;
+    for (var i = 0; i < dots.length; i++) dots[i].classList.toggle('on', i < B.round);
+    $('count').textContent = '已完成 ' + B.round + '／' + B.total + ' 次呼吸';
+  }
+  function bLock(on) { segDisable('segSec', on); segDisable('segCnt', on); }
+  function wakeOn() { try { if (navigator.wakeLock) navigator.wakeLock.request('screen').then(function (l) { B.lock = l; }, function () {}); } catch (e) {} }
+  function wakeOff() { try { if (B.lock) { B.lock.release(); B.lock = null; } } catch (e) {} }
+  function bPhase(label, dur, to, next) {
+    $('phase').textContent = label + '……';
+    say(label === '慢慢吸氣' ? '我們一起，慢慢地吸一口氣' : '再慢慢地，把氣吐出來');
+    bScale(to, dur);
+    var left = dur;
+    $('secNum').textContent = left;
+    B.tick = setInterval(function () { left--; if (left > 0) $('secNum').textContent = left; }, 1000);
+    B.timers.push(setTimeout(function () { clearInterval(B.tick); B.tick = null; next(); }, dur * 1000));
+  }
+  function bCycle() {
+    if (!B.running) return;
+    bPhase('慢慢吸氣', B.secs, 1, function () {
+      if (!B.running) return;
+      bPhase('慢慢吐氣', B.secs, LO, function () {
+        B.round++; bUpdate();
+        if (B.round >= B.total) bFinish(); else bCycle();
+      });
+    });
+  }
+  function bFinish() {
+    B.running = false; bClear(); wakeOff(); bLock(false);
+    $('phase').textContent = '做得很好，花開了';
+    $('secNum').textContent = '';
+    bScale(1, 1.5);
+    $('breathBtn').hidden = true;
+    finishGame('breath');
+  }
+  $('breathBtn').addEventListener('click', function () {
+    if (!B.running) {
+      B.running = true; $('breathBtn').textContent = '休息一下'; bLock(true); wakeOn(); bCycle();
+    } else {
+      B.running = false; bClear(); bScale(LO, 1); wakeOff(); bLock(false);
+      $('phase').textContent = '好好休息，準備好再按開始';
+      $('secNum').textContent = '';
+      $('breathBtn').textContent = '繼續呼吸';
+    }
+  });
+  bindSeg('segSec', function (v) { B.secs = v; GAMES.breath.reset(); });
+  bindSeg('segCnt', function (v) { B.total = v; GAMES.breath.reset(); });
+  GAMES.breath.reset = function () {
+    bClear(); B.running = false; B.round = 0; bDots(); bUpdate(); bScale(LO, 0.01);
+    $('phase').textContent = '準備好了，就按開始'; $('secNum').textContent = '';
+    $('breathBtn').hidden = false; $('breathBtn').textContent = '開始呼吸';
+    bLock(false); $('res-breath').hidden = true; wakeOff();
+  };
+  GAMES.breath.stop = function () { bClear(); B.running = false; wakeOff(); };
+
+  /* ---------- 遊戲 2：雲朵 ---------- */
+  var clouds = Array.prototype.slice.call(document.querySelectorAll('.cloud'));
+  var cloudsLeft = clouds.length, cloudTimers = [];
+  clouds.forEach(function (c) {
+    c.addEventListener('click', function () {
+      if (c.classList.contains('gone')) return;
+      c.classList.add('gone');
+      cloudTimers.push(setTimeout(function () { c.classList.add('hidden'); }, 1900));
+      cloudsLeft--;
+      beep(440, 0.15);
+      if (cloudsLeft > 0) {
+        $('cloudCount').textContent = '還有 ' + cloudsLeft + ' 朵雲';
+      } else {
+        $('cloudCount').textContent = '心裡變得清爽了';
+        $('sky').classList.add('clear');
+        finishGame('clouds');
+      }
+    });
+  });
+  GAMES.clouds.reset = function () {
+    cloudTimers.forEach(clearTimeout); cloudTimers = [];
+    cloudsLeft = clouds.length;
+    clouds.forEach(function (c) { c.classList.remove('gone', 'hidden'); });
+    $('sky').classList.remove('clear');
+    $('cloudCount').textContent = '還有 ' + cloudsLeft + ' 朵雲';
+    $('res-clouds').hidden = true;
+  };
+  GAMES.clouds.stop = function () { cloudTimers.forEach(clearTimeout); cloudTimers = []; };
+
+  /* ---------- 遊戲 3：感恩的燈 ---------- */
+  var gifts = ['家人和朋友的陪伴', '一杯熱熱的茶', '今天的好天氣', '一頓好吃的飯', '一首喜歡的歌', '公園裡的散步', '一通問候的電話', '能睡的一張好床'];
+  var picked = [];
+  var cardsEl = $('cards');
+  gifts.forEach(function (g) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'card'; b.textContent = g;
+    b.setAttribute('aria-pressed', 'false');
+    b.addEventListener('click', function () {
+      var i = picked.indexOf(g);
+      if (i >= 0) picked.splice(i, 1);
+      else if (picked.length < 3) { picked.push(g); beep(523 + picked.length * 80, 0.2); }
+      renderGratitude();
+      if (picked.length === 3) {
+        saveGratitude(picked.slice());
+        finishGame('lantern', '你點亮了三盞燈：' + picked.join('、') + '。這些小事，就是每天的好時光。');
+      }
+    });
+    cardsEl.appendChild(b);
+  });
+  var lanternSvg = '<svg viewBox="0 0 60 80" aria-hidden="true"><path d="M30 0v10" stroke="var(--muted)" stroke-width="3"/><rect x="18" y="8" width="24" height="6" rx="2" fill="var(--muted)"/><ellipse class="glow" cx="30" cy="40" rx="22" ry="26"/><path d="M30 14v52M16 24c4 10 4 22 0 32M44 24c-4 10-4 22 0 32" fill="none" stroke="var(--bg)" stroke-opacity=".5" stroke-width="2"/><rect x="22" y="64" width="16" height="6" rx="2" fill="var(--muted)"/><path d="M26 70v8M30 70v10M34 70v8" stroke="var(--bloom)" stroke-width="2.500" stroke-linecap="round"/></svg>';
+  function renderGratitude() {
+    var cards = cardsEl.children, full = picked.length >= 3;
+    for (var i = 0; i < cards.length; i++) {
+      var on = picked.indexOf(gifts[i]) >= 0;
+      cards[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+      cards[i].disabled = full || (!on && picked.length >= 3);
+    }
+    var html = '';
+    for (var k = 0; k < 3; k++) {
+      var has = k < picked.length;
+      html += '<div class="lantern' + (has ? ' lit' : '') + '">' + lanternSvg + '<b>' + (has ? picked[k] : '尚未點亮') + '</b></div>';
+    }
+    $('lanterns').innerHTML = html;
+    $('pickCount').textContent = picked.length < 3 ? '已選 ' + picked.length + '／3 項' : '三盞燈都亮了';
+  }
+  GAMES.lantern.reset = function () { picked = []; renderGratitude(); $('res-lantern').hidden = true; };
+  GAMES.lantern.stop = function () {};
+
+  /* ---------- 遊戲 4：節拍拍手 ---------- */
+  var C = { P: 2000, running: false, raf: 0, t0: 0, beats: 12, hits: {}, hitCount: 0, lastIdx: 0, timer: 0, maxS: 3 };
+  function cDots() { var h = ''; for (var i = 0; i < C.beats; i++) h += '<span></span>'; $('clapDots').innerHTML = h; }
+  function cLoop(now) {
+    if (!C.running) return;
+    var t = now - C.t0, P = C.P;
+    var phase = (t % P) / P;
+    $('beatRing').style.transform = 'scale(' + (1 + (C.maxS - 1) * (1 - phase)) + ')';
+    var idx = Math.floor(t / P);
+    if (idx > C.lastIdx) { C.lastIdx = idx; if (idx >= 1 && idx <= C.beats) beep(660, 0.1); }
+    if (t >= C.beats * P + 0.8 * P) { cFinish(); return; }
+    C.raf = requestAnimationFrame(cLoop);
+  }
+  function cFinish() {
+    C.running = false; cancelAnimationFrame(C.raf);
+    $('beatRing').style.opacity = 0;
+    $('clapTap').hidden = true;
+    $('clapMsg').textContent = '拍完了，做得很好';
+    finishGame('clap', '你拍到了 ' + C.hitCount + '／' + C.beats + ' 拍');
+  }
+  function flashTarget() {
+    var t = $('beatTarget'); t.classList.add('hit');
+    clearTimeout(C.timer); C.timer = setTimeout(function () { t.classList.remove('hit'); }, 220);
+  }
+  $('clapStart').addEventListener('click', function () {
+    var ring = $('beatRing');
+    C.maxS = Math.max(1.3, Math.min(3, ring.parentNode.clientWidth / ring.offsetWidth));
+    C.running = true; C.hits = {}; C.hitCount = 0; C.lastIdx = 0; C.t0 = performance.now();
+    $('clapStart').hidden = true; $('clapTap').hidden = false; segDisable('segSpeed', true);
+    $('beatRing').style.opacity = 1;
+    $('clapMsg').textContent = '看圈圈縮小，縮到中間時點「拍」';
+    say('看著圈圈慢慢縮小，縮到中間的時候，輕輕點一下就好');
+    C.raf = requestAnimationFrame(cLoop);
+  });
+  $('clapTap').addEventListener('click', function () {
+    if (!C.running) return;
+    var t = performance.now() - C.t0, P = C.P, k = Math.round(t / P), d = Math.abs(t - k * P);
+    if (k < 1 || k > C.beats) { $('clapMsg').textContent = '再等一下，看圈圈縮小'; return; }
+    if (C.hits[k]) { $('clapMsg').textContent = '這一拍拍過了，等下一拍'; return; }
+    if (d <= 0.35 * P) {
+      C.hits[k] = 1; C.hitCount++;
+      $('clapDots').children[k - 1].classList.add('on');
+      $('clapMsg').textContent = d <= 0.2 * P ? '很準！' : '不錯！';
+      flashTarget(); beep(880, 0.12);
+    } else {
+      $('clapMsg').textContent = '慢慢來，縮到跟中間一樣大時再點';
+    }
+  });
+  bindSeg('segSpeed', function (v) { C.P = v; });
+  GAMES.clap.reset = function () {
+    C.running = false; cancelAnimationFrame(C.raf); clearTimeout(C.timer);
+    C.hits = {}; C.hitCount = 0; cDots();
+    $('beatRing').style.opacity = 0; $('beatRing').style.transform = 'scale(1)';
+    $('beatTarget').classList.remove('hit');
+    $('clapMsg').textContent = '準備好了，就按開始';
+    $('clapStart').hidden = false; $('clapTap').hidden = true; segDisable('segSpeed', false);
+    $('res-clap').hidden = true;
+  };
+  GAMES.clap.stop = function () { C.running = false; cancelAnimationFrame(C.raf); clearTimeout(C.timer); };
+
+  /* ---------- 遊戲 5：手指操 ---------- */
+  var FNAMES = ['拇指', '食指', '中指', '無名指', '小指'];
+  var FROUNDS = [['L1'], ['R2'], ['L4'], ['R0'], ['L1', 'R1'], ['L2', 'R2'], ['L0', 'R3'], ['L3', 'R1']];
+  var F = { r: 0, need: {}, busy: false, timer: 0 };
+  (function () {
+    ['L', 'R'].forEach(function (h) {
+      var html = '';
+      for (var i = 0; i < 5; i++) html += '<button type="button" class="finger" data-k="' + h + i + '" aria-label="' + (h === 'L' ? '左手' : '右手') + FNAMES[i] + '">' + FNAMES[i] + '</button>';
+      $('row' + h).innerHTML = html;
+    });
+  })();
+  function fPaint() {
+    Array.prototype.forEach.call(document.querySelectorAll('.finger'), function (b) {
+      var k = b.getAttribute('data-k');
+      b.classList.remove('target', 'ok', 'wrong');
+      if (F.need[k]) b.classList.add('target');
+    });
+  }
+  function fName(k) { return (k.charAt(0) === 'L' ? '左手' : '右手') + FNAMES[+k.charAt(1)]; }
+  function fRound() {
+    F.busy = false; F.need = {};
+    var ts = FROUNDS[F.r];
+    ts.forEach(function (k) { F.need[k] = 1; });
+    fPaint();
+    var txt = '請點：' + ts.map(fName).join('、');
+    $('fingerMsg').textContent = txt;
+    say('請輕輕點一下，' + ts.map(function (k) { return (k.charAt(0) === 'L' ? '左手' : '右手') + '的' + FNAMES[+k.charAt(1)]; }).join('，還有'));
+    $('fingerCount').textContent = '第 ' + (F.r + 1) + '／' + FROUNDS.length + ' 回';
+  }
+  $('fingerStart').addEventListener('click', function () {
+    $('fingerStart').hidden = true; $('hands').hidden = false; F.r = 0; fRound();
+  });
+  $('hands').addEventListener('click', function (e) {
+    var b = e.target.closest('.finger');
+    if (!b || F.busy) return;
+    var k = b.getAttribute('data-k');
+    if (F.need[k]) {
+      delete F.need[k]; b.classList.remove('target'); b.classList.add('ok'); beep(600, 0.12);
+      if (!Object.keys(F.need).length) {
+        F.busy = true; F.r++;
+        if (F.r >= FROUNDS.length) {
+          $('fingerMsg').textContent = '全部完成了，手指好靈活';
+          $('fingerCount').textContent = '完成 ' + FROUNDS.length + '／' + FROUNDS.length + ' 回';
+          finishGame('fingers');
+        } else {
+          $('fingerMsg').textContent = '答對了！';
+          F.timer = setTimeout(fRound, 800);
+        }
+      }
+    } else {
+      b.classList.remove('wrong'); void b.offsetWidth; b.classList.add('wrong');
+      $('fingerMsg').textContent = '沒關係，找找亮起來的手指';
+    }
+  });
+  GAMES.fingers.reset = function () {
+    clearTimeout(F.timer); F.r = 0; F.need = {}; F.busy = false; fPaint();
+    $('hands').hidden = true; $('fingerStart').hidden = false;
+    $('fingerMsg').textContent = '準備好了，就按開始';
+    $('fingerCount').textContent = '第 1／' + FROUNDS.length + ' 回';
+    $('res-fingers').hidden = true;
+  };
+  GAMES.fingers.stop = function () { clearTimeout(F.timer); };
+
+  /* ---------- 遊戲 6：記憶配對 ---------- */
+  var M = { pairs: 3, cards: [], open: [], lock: false, tries: 0, matched: 0, timer: 0 };
+  function shuffle(a) {
+    for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; }
+    return a;
+  }
+  var BACK = '<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="11" fill="none" stroke="var(--line)" stroke-width="3"/><circle cx="20" cy="20" r="3" fill="var(--line)"/></svg>';
+  function mRender() {
+    var h = '';
+    M.cards.forEach(function (c, i) {
+      var face = c.state !== 'down';
+      h += '<button type="button" class="mcard ' + (c.state === 'up' ? 'up' : c.state === 'match' ? 'match' : '') + '" data-i="' + i + '" aria-label="' + (face ? KINDS[c.k].name : '蓋著的卡片，第 ' + (i + 1) + ' 張') + '"' + (c.state === 'match' ? ' disabled' : '') + '>' + (face ? KINDS[c.k].svg() + '<span>' + KINDS[c.k].name + '</span>' : BACK) + '</button>';
+    });
+    $('mem').innerHTML = h;
+    $('memCount').textContent = '已翻 ' + M.tries + ' 次，找到 ' + M.matched + '／' + M.pairs + ' 對';
+  }
+  $('mem').addEventListener('click', function (e) {
+    var b = e.target.closest('.mcard');
+    if (!b || M.lock) return;
+    var i = +b.getAttribute('data-i'), c = M.cards[i];
+    if (c.state !== 'down') return;
+    c.state = 'up'; M.open.push(i); beep(500, 0.08);
+    if (M.open.length === 2) {
+      M.tries++; M.lock = true;
+      var a = M.cards[M.open[0]], d = M.cards[M.open[1]];
+      if (a.k === d.k) {
+        a.state = 'match'; d.state = 'match'; M.matched++; M.open = []; M.lock = false;
+        beep(784, 0.2); mRender();
+        if (M.matched === M.pairs) finishGame('memory', '你翻了 ' + M.tries + ' 次，找到全部 ' + M.pairs + ' 對花');
+      } else {
+        mRender();
+        M.timer = setTimeout(function () {
+          a.state = 'down'; d.state = 'down'; M.open = []; M.lock = false; mRender();
+        }, 1300);
+      }
+    } else { mRender(); }
+  });
+  bindSeg('segPairs', function (v) { M.pairs = v; GAMES.memory.reset(); });
+  GAMES.memory.reset = function () {
+    clearTimeout(M.timer);
+    var ks = shuffle([0, 1, 2, 3, 4, 5]).slice(0, M.pairs);
+    M.cards = shuffle(ks.concat(ks)).map(function (k) { return { k: k, state: 'down' }; });
+    M.open = []; M.lock = false; M.tries = 0; M.matched = 0;
+    $('mem').style.setProperty('--cols', M.pairs === 3 ? 3 : 4);
+    mRender(); $('res-memory').hidden = true;
+  };
+  GAMES.memory.stop = function () { clearTimeout(M.timer); };
+
+  /* ---------- 遊戲 7：花瓣順序 ---------- */
+  var TONES = [262, 330, 392, 494], PLEN = [2, 3, 4, 5];
+  var P = { r: 0, seq: [], pos: 0, input: false, timers: [] };
+  function pClear() { P.timers.forEach(clearTimeout); P.timers = []; }
+  function pLight(i, ms) {
+    var el = $('pad').querySelector('.petal[data-i="' + i + '"]');
+    el.classList.add('lit'); beep(TONES[i], ms / 1000);
+    P.timers.push(setTimeout(function () { el.classList.remove('lit'); }, ms));
+  }
+  function pPlay() {
+    P.input = false; P.pos = 0;
+    $('padMsg').textContent = '請看花瓣亮起來的順序'; say('請先看一看，花瓣亮起來的順序');
+    P.seq.forEach(function (v, i) {
+      P.timers.push(setTimeout(function () { pLight(v, 650); }, 1500 + i * 1100));
+    });
+    P.timers.push(setTimeout(function () {
+      P.input = true;
+      $('padMsg').textContent = '輪到您了，照順序點一點'; say('輪到您了，慢慢來，照順序點一點');
+    }, 1500 + P.seq.length * 1100));
+  }
+  function pRound() {
+    P.seq = [];
+    for (var i = 0; i < PLEN[P.r]; i++) P.seq.push(Math.floor(Math.random() * 4));
+    $('padCount').textContent = '第 ' + (P.r + 1) + '／' + PLEN.length + ' 回，共 ' + PLEN[P.r] + ' 個';
+    pPlay();
+  }
+  $('padStart').addEventListener('click', function () { $('padStart').hidden = true; P.r = 0; pRound(); });
+  $('pad').addEventListener('click', function (e) {
+    var b = e.target.closest('.petal');
+    if (!b || !P.input) return;
+    var i = +b.getAttribute('data-i');
+    pLight(i, 300);
+    if (i === P.seq[P.pos]) {
+      P.pos++;
+      if (P.pos === P.seq.length) {
+        P.input = false; P.r++;
+        if (P.r >= PLEN.length) {
+          $('padMsg').textContent = '全部記住了，真厲害';
+          finishGame('petals');
+        } else {
+          $('padMsg').textContent = '答對了！準備下一回'; say('很好，答對了');
+          P.timers.push(setTimeout(pRound, 1400));
+        }
+      }
+    } else {
+      P.input = false;
+      $('padMsg').textContent = '沒關係，我們再看一次'; say('沒關係，我們再看一次');
+      P.timers.push(setTimeout(pPlay, 1400));
+    }
+  });
+  GAMES.petals.reset = function () {
+    pClear(); P.r = 0; P.input = false; P.seq = [];
+    Array.prototype.forEach.call(document.querySelectorAll('.petal'), function (p) { p.classList.remove('lit'); });
+    $('padMsg').textContent = '準備好了，就按開始';
+    $('padCount').textContent = '第 1／' + PLEN.length + ' 回';
+    $('padStart').hidden = false; $('res-petals').hidden = true;
+  };
+  GAMES.petals.stop = function () { pClear(); P.input = false; };
+
+  /* ---------- 分享 ---------- */
+  function drawLotus(x, cx, cy, r, color) {
+    [-60, -30, 0, 30, 60].forEach(function (a) {
+      x.save(); x.translate(cx, cy + r * 0.35); x.rotate(a * Math.PI / 180);
+      x.beginPath(); x.ellipse(0, -r * 0.55, r * 0.26, r * 0.6, 0, 0, Math.PI * 2);
+      x.fillStyle = color; x.globalAlpha = 0.7; x.fill(); x.globalAlpha = 1;
+      x.lineWidth = 3; x.strokeStyle = color; x.stroke(); x.restore();
+    });
+    x.beginPath(); x.arc(cx, cy + r * 0.2, r * 0.17, 0, Math.PI * 2); x.fillStyle = '#E8A93B'; x.fill();
+  }
+  function drawShare(n) {
+    var c = document.createElement('canvas'); c.width = 900; c.height = 900;
+    var x = c.getContext('2d'), serif = '"Noto Serif TC","Songti TC","PMingLiU",serif', now = new Date();
+    var days = getLog().days || {};
+    x.fillStyle = '#EEF4F1'; x.fillRect(0, 0, 900, 900);
+    x.fillStyle = '#DCEBF3'; x.fillRect(0, 0, 900, 400);
+    x.fillStyle = '#E8A93B'; x.beginPath(); x.arc(770, 110, 54, 0, Math.PI * 2); x.fill();
+    x.fillStyle = '#E3EEE9'; x.beginPath(); x.ellipse(450, 960, 700, 520, 0, 0, Math.PI * 2); x.fill();
+    x.textAlign = 'center'; x.textBaseline = 'alphabetic';
+    x.fillStyle = '#16302B'; x.font = '700 64px ' + serif; x.fillText('靜心小園', 450, 130);
+    if (n > 0) {
+      x.fillStyle = '#43605A'; x.font = '500 44px sans-serif'; x.fillText('連續練習', 450, 235);
+      x.fillStyle = '#1F6F5C'; x.font = '700 150px ' + serif; x.fillText(n + ' 天', 450, 385);
+    } else {
+      x.fillStyle = '#1F6F5C'; x.font = '700 84px ' + serif; x.fillText('開始練習冥想', 450, 340);
+    }
+    for (var i = 0; i < 7; i++) {
+      var d = addDays(now, i - 6), cx = 450 + (i - 3) * 118, cy = 540, done = !!(days[dayKey(d)] && days[dayKey(d)].length);
+      x.beginPath(); x.arc(cx, cy, 46, 0, Math.PI * 2); x.fillStyle = '#FFFFFF'; x.fill();
+      if (done) { x.setLineDash([]); x.lineWidth = 4; x.strokeStyle = '#C94A75'; x.stroke(); drawLotus(x, cx, cy - 8, 40, '#C94A75'); }
+      else { x.setLineDash([8, 8]); x.lineWidth = 4; x.strokeStyle = '#B9CFC7'; x.stroke(); x.setLineDash([]); }
+      x.fillStyle = i === 6 ? '#16302B' : '#43605A'; x.font = (i === 6 ? '700 ' : '500 ') + '30px sans-serif';
+      x.fillText(i === 6 ? '今天' : '週' + DAYN[d.getDay()], cx, 636);
+    }
+    x.fillStyle = '#16302B'; x.font = '500 38px sans-serif';
+    x.fillText(now.getFullYear() + ' 年 ' + (now.getMonth() + 1) + ' 月 ' + now.getDate() + ' 日', 450, 765);
+    x.fillStyle = '#1F6F5C'; x.font = '700 44px ' + serif; x.fillText('每天幾分鐘，讓心慢下來', 450, 840);
+    return c.toDataURL('image/png');
+  }
+  function renderShare() {
+    var n = streakDays(), g = (getLog().grat || {})[dayKey(new Date())];
+    var url = SHARE_URL || String(location.href).split('#')[0];
+    var t = n > 0 ? '我今天用「靜心小園」做了冥想小練習，已經連續 ' + n + ' 天了！' : '我正在用「靜心小園」練習冥想，一起來試試看。';
+    if (g && g.length) t += '\n今天我感謝：' + g.join('、') + '。';
+    if (/^https?:/.test(url)) t += '\n一起來玩：' + url;
+    $('shareText').value = t; $('copyMsg').textContent = '';
+    try { $('shareImg').src = drawShare(n); } catch (e) {}
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { try { if (!$('s-share').hidden) $('shareImg').src = drawShare(n); } catch (e) {} });
+  }
+  $('copyBtn').addEventListener('click', function () {
+    var ta = $('shareText'), text = ta.value;
+    function fallback() {
+      try { ta.focus(); ta.select(); ta.setSelectionRange(0, 99999); var ok = document.execCommand && document.execCommand('copy'); $('copyMsg').textContent = ok ? '已複製，可以貼給家人了' : '請長按上方文字，選「拷貝」'; }
+      catch (e) { $('copyMsg').textContent = '請長按上方文字，選「拷貝」'; }
+    }
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { $('copyMsg').textContent = '已複製，可以貼給家人了'; }, fallback);
+      else fallback();
+    } catch (e) { fallback(); }
+  });
+
+  /* ---------- 花園環境音（全部由程式即時合成） ---------- */
+  var AU = { ctx: null, master: null, bus: null, noise: null, ambient: false, timers: {}, layers: [], level: 1 };
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+  function auInit() {
+    if (AU.ctx) return true;
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return false;
+      var ctx = new AC(); AU.ctx = ctx;
+      var comp = ctx.createDynamicsCompressor(); comp.connect(ctx.destination);
+      AU.master = ctx.createGain(); AU.master.gain.value = 0.0001; AU.master.connect(comp);
+      AU.bus = ctx.createGain(); AU.bus.connect(AU.master);
+      var dl = ctx.createDelay(1.0); dl.delayTime.value = 0.31;
+      var fb = ctx.createGain(); fb.gain.value = 0.36;
+      var lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2200;
+      var wet = ctx.createGain(); wet.gain.value = 0.35;
+      AU.bus.connect(dl); dl.connect(lp); lp.connect(fb); fb.connect(dl); lp.connect(wet); wet.connect(AU.master);
+      var len = ctx.sampleRate * 4, buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+      var b0 = 0, b1 = 0, b2 = 0;
+      for (var i = 0; i < len; i++) {
+        var w = Math.random() * 2 - 1;
+        b0 = 0.99765 * b0 + w * 0.099046; b1 = 0.963 * b1 + w * 0.2965164; b2 = 0.57 * b2 + w * 1.0526913;
+        d[i] = (b0 + b1 + b2 + w * 0.1848) * 0.11;
+      }
+      AU.noise = buf;
+      return true;
+    } catch (e) { AU.ctx = null; return false; }
+  }
+  function auReady() { return !!(AU.ctx && AU.ctx.state !== 'closed'); }
+  function auMaster() {
+    if (!auReady()) return;
+    var t = AU.ctx.currentTime;
+    AU.master.gain.setTargetAtTime(AU.ambient ? 0.9 * AU.level : 0.0001, t, AU.ambient ? 0.8 : 0.3);
+  }
+  function auLevel(l) { AU.level = l; auMaster(); }
+  function tone(freq, t0, dur, vol, type, glideTo) {
+    if (!auReady()) return;
+    var ctx = AU.ctx, o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = type || 'sine';
+    o.frequency.setValueAtTime(freq, t0);
+    if (glideTo) o.frequency.exponentialRampToValueAtTime(glideTo, t0 + dur);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(vol, t0 + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g); g.connect(AU.bus);
+    o.start(t0); o.stop(t0 + dur + 0.05);
+  }
+  function noiseLayer(type, freq, q, gain, lfoHz, lfoDepth, fmHz, fmDepth) {
+    var ctx = AU.ctx, src = ctx.createBufferSource();
+    src.buffer = AU.noise; src.loop = true;
+    var f = ctx.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
+    var g = ctx.createGain(); g.gain.value = gain;
+    var lfo = ctx.createOscillator(), lg = ctx.createGain();
+    lfo.frequency.value = lfoHz; lg.gain.value = lfoDepth;
+    lfo.connect(lg); lg.connect(g.gain);
+    var nodes = [src, lfo];
+    if (fmHz) {
+      var fm = ctx.createOscillator(), fg = ctx.createGain();
+      fm.frequency.value = fmHz; fg.gain.value = fmDepth;
+      fm.connect(fg); fg.connect(f.frequency); fm.start(); nodes.push(fm);
+    }
+    src.connect(f); f.connect(g); g.connect(AU.master);
+    src.start(0, Math.random() * 3); lfo.start();
+    AU.layers.push({ nodes: nodes, gain: g });
+  }
+  function auLayers() {
+    noiseLayer('bandpass', 700, 0.8, 0.05, 0.31, 0.022, 0.8, 260);
+    noiseLayer('bandpass', 1500, 1.1, 0.032, 0.47, 0.016, 1.3, 420);
+    noiseLayer('bandpass', 3300, 2, 0.012, 0.9, 0.008, 2.1, 600);
+    noiseLayer('lowpass', 420, 0.5, 0.03, 0.08, 0.022, 0, 0);
+  }
+  function dripSound() {
+    if (!auReady()) return;
+    var t = AU.ctx.currentTime, f = rnd(900, 1700);
+    tone(f, t, 0.16, 0.07, 'sine', f * 0.55);
+    tone(f * 1.5, t + 0.01, 0.1, 0.02, 'sine', f * 0.9);
+  }
+  function chimeSound() {
+    if (!auReady()) return;
+    var t = AU.ctx.currentTime, scale = [784, 880, 1047, 1175, 1319, 1568], n = 2 + Math.floor(Math.random() * 3), t0 = t;
+    for (var i = 0; i < n; i++) {
+      var f = pick(scale);
+      [1, 2.76, 5.4].forEach(function (r, k) { tone(f * r, t0, 3.4 / (1 + k * 0.7), [0.05, 0.02, 0.008][k], 'sine'); });
+      t0 += rnd(0.22, 0.5);
+    }
+  }
+  function birdSound() {
+    if (!auReady()) return;
+    var t = AU.ctx.currentTime, base = rnd(2400, 3800), n = 2 + Math.floor(Math.random() * 4), step = rnd(0.11, 0.18);
+    for (var i = 0; i < n; i++) tone(base * rnd(0.95, 1.15), t + i * step, 0.09, 0.035, 'sine', base * rnd(1.25, 1.6));
+    if (Math.random() < 0.4) for (var j = 0; j < 6; j++) tone(base * 1.1, t + n * step + 0.1 + j * 0.05, 0.04, 0.02, 'sine', base * 1.25);
+  }
+  function cricketSound() {
+    if (!auReady()) return;
+    var t = AU.ctx.currentTime;
+    for (var c = 0; c < 3; c++) for (var p = 0; p < 5; p++) tone(4300, t + c * 0.45 + p * 0.05, 0.03, 0.012, 'sine');
+  }
+  function padSound() {
+    if (!auReady()) return;
+    var ctx = AU.ctx, t = ctx.currentTime, notes = [130.81, 164.81, 196, 220, 261.63, 293.66, 329.63];
+    [pick(notes), pick(notes)].forEach(function (f, k) {
+      [1, 1.004].forEach(function (dt) {
+        var o = ctx.createOscillator(), g = ctx.createGain(), s = t + k * 1.5;
+        o.type = 'sine'; o.frequency.value = f * dt;
+        g.gain.setValueAtTime(0.0001, s);
+        g.gain.linearRampToValueAtTime(0.022, s + 3);
+        g.gain.linearRampToValueAtTime(0.0001, s + 9.5);
+        o.connect(g); g.connect(AU.bus); o.start(s); o.stop(s + 9.6);
+      });
+    });
+  }
+  function bowlSound(vol) {
+    if (!auReady()) return;
+    var ctx = AU.ctx, t = ctx.currentTime, f = 196;
+    [[1, 0.55], [2.71, 0.22], [5.2, 0.08]].forEach(function (p) {
+      [-1.4, 1.4].forEach(function (dt) {
+        var o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = 'sine'; o.frequency.value = f * p[0] + dt;
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime((vol || 0.16) * p[1], t + 0.03);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 9);
+        o.connect(g); g.connect(AU.bus); o.start(t); o.stop(t + 9.2);
+      });
+    });
+  }
+  function every(name, minS, maxS, fn) {
+    function run() {
+      if (!AU.ambient) return;
+      try { fn(); } catch (e) {}
+      AU.timers[name] = setTimeout(run, rnd(minS, maxS) * 1000);
+    }
+    AU.timers[name] = setTimeout(run, rnd(0.5, minS) * 1000);
+  }
+  function auSchedule() {
+    function tod() { return getTod(new Date()); }
+    every('drip', 3, 7, dripSound);
+    every('bird', 3, 6, function () { var t = tod(); if (t === 'dawn' || (t === 'day' && Math.random() < 0.55) || (t === 'dusk' && Math.random() < 0.2)) birdSound(); });
+    every('cricket', 3, 6, function () { var t = tod(); if (t === 'night' || (t === 'dusk' && Math.random() < 0.6)) cricketSound(); });
+    every('chime', 10, 20, function () { if (Math.random() < 0.75) chimeSound(); });
+    every('pad', 12, 20, padSound);
+  }
+  function auStart(withBowl) {
+    if (!auInit()) return;
+    try { AU.ctx.resume(); } catch (e) {}
+    if (!AU.ambient) { AU.ambient = true; auLayers(); auSchedule(); }
+    auMaster();
+    if (withBowl) bowlSound(0.16);
+  }
+  function auStop() {
+    AU.ambient = false;
+    Object.keys(AU.timers).forEach(function (k) { clearTimeout(AU.timers[k]); });
+    AU.timers = {};
+    auMaster();
+    var old = AU.layers; AU.layers = [];
+    setTimeout(function () {
+      old.forEach(function (l) { l.nodes.forEach(function (n) { try { n.stop(); } catch (e) {} }); try { l.gain.disconnect(); } catch (e) {} });
+    }, 1500);
+  }
+  document.addEventListener('pointerdown', function () { if (soundOn && !AU.ambient) auStart(false); }, { passive: true });
+  document.addEventListener('visibilitychange', function () {
+    if (!auReady()) return;
+    try { if (document.hidden) AU.ctx.suspend(); else if (soundOn) AU.ctx.resume(); } catch (e) {}
+  });
+  /* 提示音：柔和的鈴聲 */
+  function beep(freq, dur) {
+    if (!soundOn || !auReady() || !AU.ambient) return;
+    var t = AU.ctx.currentTime, d = Math.max(dur, 0.15) * 1.8;
+    tone(freq, t, d, 0.12, 'sine');
+    tone(freq * 2, t, dur, 0.025, 'sine');
+  }
+
+  /* ---------- 開始 ---------- */
+  ORDER.forEach(function (id) { GAMES[id].reset(); });
+  show(store.get('jxseen') ? 'map' : 'onboard');
+})();
+</script>
+</body>
+</html>
+
+</body></html>
