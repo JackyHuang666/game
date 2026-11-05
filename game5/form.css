@@ -1,0 +1,687 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>轉盤畫</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@500;700&display=swap">
+<style>
+  /* Layout: a large spinning disc on the left, a quiet control column on the right; stacks under the disc on phones. */
+  :root {
+    --bg: #0d1017;
+    --panel: #141925;
+    --line: #2a3244;
+    --ring: #2c3548;
+    --fg: #e9e7f1;
+    --muted: #8c94a8;
+    --accent: #f2b5a0;
+    --accent-ink: #1a1018;
+    --disc-in: #1d2333;
+    --disc-out: #121724;
+    --serif: 'Noto Serif TC', 'Songti TC', 'PMingLiU', serif;
+    --sans: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', system-ui, sans-serif;
+    color-scheme: dark;
+  }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font: 15px/1.6 var(--sans);
+  }
+  .page {
+    padding-block: 20px 40px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .wrap { max-width: 1160px; margin: 0 auto; }
+
+  .top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; }
+  .top h1 {
+    margin: 0;
+    font: 700 30px/1.2 var(--serif);
+    letter-spacing: 0.12em;
+    text-wrap: balance;
+  }
+  .top p { margin: 0; color: var(--muted); font-size: 14px; }
+
+  .app {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 48px;
+    align-items: start;
+    margin-top: 22px;
+  }
+  @media (max-width: 860px) {
+    .app { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  }
+
+  .stage { width: min(100%, max(300px, calc(100vh - 150px))); margin-inline: auto; }
+  canvas#wheel {
+    display: block;
+    touch-action: none;
+    cursor: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .hint { margin: 10px 0 0; text-align: center; color: var(--muted); font-size: 13px; }
+
+  .panel { display: grid; gap: 26px; min-width: 0; }
+  .sec { display: grid; gap: 10px; min-width: 0; }
+  .lblrow { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .lbl {
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .out { font-size: 13px; color: var(--fg); font-variant-numeric: tabular-nums; }
+
+  .btn {
+    font: 500 14px/1.2 var(--sans);
+    color: var(--fg);
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 8px 12px;
+    min-height: 40px;
+    cursor: pointer;
+    transition: border-color 0.15s, background-color 0.15s, color 0.15s;
+  }
+  .btn:hover { border-color: var(--muted); }
+  .btn[aria-pressed="true"] {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+  }
+  .btn:focus-visible, .sw:focus-visible, .custom:focus-within, input[type="range"]:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+  .grid5 { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+  .swatches { display: flex; flex-wrap: wrap; gap: 12px; }
+  .sw {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: 0; padding: 0;
+    cursor: pointer;
+    position: relative;
+  }
+  .sw[aria-pressed="true"] { outline: 2px solid var(--fg); outline-offset: 3px; }
+  .custom {
+    background: conic-gradient(#f4a6a0, #f7c97e, #b9e3a0, #7fd6c8, #8db8f5, #b8a3f0, #f2a6d4, #f4a6a0);
+  }
+  .custom input {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    opacity: 0; cursor: pointer; padding: 0; border: 0;
+  }
+  .custom .pick {
+    position: absolute; inset: 9px;
+    border-radius: 50%;
+    background: var(--bg);
+    pointer-events: none;
+  }
+
+  .wrow { display: grid; grid-template-columns: minmax(0, 1fr) 48px; gap: 14px; align-items: center; }
+  .dotbox { height: 48px; display: grid; place-items: center; }
+  #dot { border-radius: 50%; background: #8db8f5; }
+  input[type="range"] { width: 100%; accent-color: var(--accent); margin: 0; }
+
+  .music { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: center; }
+  .clear { justify-self: start; }
+</style>
+
+<div class="page">
+  <div class="wrap">
+    <header class="top">
+      <h1>轉盤畫</h1>
+      <p>冥想小遊戲　按住圓盤，讓線條隨著轉動慢慢長成圓。</p>
+    </header>
+
+    <div class="app">
+      <div class="stage" id="stage">
+        <canvas id="wheel" role="img" aria-label="可旋轉的圓形畫盤"></canvas>
+        <p class="hint">在圓盤上按住並拖曳。轉速停止時，就是一般的畫板。</p>
+      </div>
+
+      <div class="panel">
+        <section class="sec" aria-labelledby="lbl-color">
+          <div class="lblrow"><span class="lbl" id="lbl-color">畫筆顏色</span></div>
+          <div class="swatches" id="swatches">
+            <label class="sw custom" title="自訂顏色">
+              <input type="color" id="custom" value="#8db8f5" aria-label="自訂顏色">
+              <span class="pick" id="pick"></span>
+            </label>
+          </div>
+        </section>
+
+        <section class="sec">
+          <div class="lblrow">
+            <label class="lbl" for="width">畫筆粗細</label>
+            <span class="out" id="widthOut">6 px</span>
+          </div>
+          <div class="wrow">
+            <input type="range" id="width" min="1" max="40" step="1" value="6">
+            <div class="dotbox"><div id="dot"></div></div>
+          </div>
+        </section>
+
+        <section class="sec">
+          <div class="lblrow">
+            <label class="lbl" for="speed">轉盤速度</label>
+            <span class="out" id="speedOut">12 轉/分</span>
+          </div>
+          <div class="grid5" id="presets">
+            <button type="button" class="btn" data-rpm="0" aria-pressed="false">停止</button>
+            <button type="button" class="btn" data-rpm="8" aria-pressed="false">緩</button>
+            <button type="button" class="btn" data-rpm="24" aria-pressed="false">中</button>
+            <button type="button" class="btn" data-rpm="55" aria-pressed="false">快</button>
+            <button type="button" class="btn" data-rpm="110" aria-pressed="false">疾</button>
+          </div>
+          <input type="range" id="speed" min="0" max="120" step="1" value="12">
+          <div class="row">
+            <button type="button" class="btn" id="dir" aria-pressed="false">順時針</button>
+          </div>
+        </section>
+
+        <section class="sec">
+          <div class="lblrow">
+            <span class="lbl" id="lbl-sym">花瓣對稱</span>
+            <span class="out" id="symOut">關閉</span>
+          </div>
+          <div class="grid5" id="syms" aria-labelledby="lbl-sym">
+            <button type="button" class="btn" data-sym="1" aria-pressed="true">1</button>
+            <button type="button" class="btn" data-sym="2" aria-pressed="false">2</button>
+            <button type="button" class="btn" data-sym="4" aria-pressed="false">4</button>
+            <button type="button" class="btn" data-sym="6" aria-pressed="false">6</button>
+            <button type="button" class="btn" data-sym="8" aria-pressed="false">8</button>
+          </div>
+        </section>
+
+        <section class="sec">
+          <div class="lblrow"><label class="lbl" for="vol">背景音樂</label></div>
+          <div class="music">
+            <button type="button" class="btn" id="musicBtn" aria-pressed="false">播放音樂</button>
+            <input type="range" id="vol" min="0" max="100" step="1" value="50" aria-label="音量">
+          </div>
+        </section>
+
+        <section class="sec">
+          <button type="button" class="btn clear" id="clearBtn" aria-pressed="false">清空畫面</button>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const TAU = Math.PI * 2;
+  const $ = (id) => document.getElementById(id);
+  const stage = $('stage');
+  const canvas = $('wheel');
+  const ctx = canvas.getContext('2d');
+
+  const PALETTE = [
+    { n: '珊瑚', c: '#f4a6a0' }, { n: '琥珀', c: '#f7c97e' },
+    { n: '鼠尾草', c: '#b9e3a0' }, { n: '湖水', c: '#7fd6c8' },
+    { n: '天藍', c: '#8db8f5' }, { n: '薰衣草', c: '#b8a3f0' },
+    { n: '粉櫻', c: '#f2a6d4' }, { n: '珍珠', c: '#f5f1e8' }
+  ];
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const state = {
+    color: PALETTE[4].c,
+    width: 6,
+    targetRpm: reduceMotion ? 0 : 12,
+    rpm: reduceMotion ? 0 : 12,
+    dir: 1,
+    sym: 1,
+    angle: 0
+  };
+
+  const cs = getComputedStyle(document.documentElement);
+  const tok = (n) => cs.getPropertyValue(n).trim();
+  const C = {
+    ring: tok('--ring'), accent: tok('--accent'), bg: tok('--bg'),
+    discIn: tok('--disc-in'), discOut: tok('--disc-out')
+  };
+
+  /* ---------- sizing & painting buffer ---------- */
+  let W = 0, R = 0, dpr = 1, inited = false;
+  let off = document.createElement('canvas');
+  let octx = off.getContext('2d');
+
+  function setOffTransform() {
+    octx.setTransform(dpr, 0, 0, dpr, off.width / 2, off.height / 2);
+  }
+
+  function resize() {
+    const w = Math.max(240, Math.floor(stage.clientWidth));
+    const nd = Math.min(2, window.devicePixelRatio || 1);
+    if (inited && w === W && nd === dpr) return;
+    const old = inited ? off : null;
+    W = w; dpr = nd; R = W / 2 - 10;
+    canvas.style.width = W + 'px';
+    canvas.style.height = W + 'px';
+    canvas.width = Math.round(W * dpr);
+    canvas.height = Math.round(W * dpr);
+    const n = document.createElement('canvas');
+    n.width = n.height = Math.round(2 * R * dpr);
+    const nctx = n.getContext('2d');
+    if (old) nctx.drawImage(old, 0, 0, old.width, old.height, 0, 0, n.width, n.height);
+    off = n; octx = nctx;
+    setOffTransform();
+    if (!inited) { inited = true; starter(); }
+  }
+
+  /* ---------- drawing ---------- */
+  function strokePath(pts, color, width, sym) {
+    const k = sym || state.sym;
+    octx.lineCap = 'round';
+    octx.lineJoin = 'round';
+    octx.lineWidth = width;
+    octx.strokeStyle = color;
+    octx.fillStyle = color;
+    for (let i = 0; i < k; i++) {
+      const t = (i * TAU) / k, c = Math.cos(t), s = Math.sin(t);
+      if (pts.length === 1) {
+        octx.beginPath();
+        octx.arc(pts[0].x * c - pts[0].y * s, pts[0].x * s + pts[0].y * c, width / 2, 0, TAU);
+        octx.fill();
+      } else {
+        octx.beginPath();
+        for (let j = 0; j < pts.length; j++) {
+          const x = pts[j].x * c - pts[j].y * s;
+          const y = pts[j].x * s + pts[j].y * c;
+          if (j === 0) octx.moveTo(x, y); else octx.lineTo(x, y);
+        }
+        octx.stroke();
+      }
+    }
+  }
+
+  function starter() {
+    const rings = [0.2, 0.3, 0.4, 0.5, 0.62, 0.74, 0.86];
+    rings.forEach((f, i) => {
+      const r = R * f;
+      const a0 = i * 0.9;
+      const len = 1.1 + i * 0.16;
+      const color = PALETTE[(i + 3) % PALETTE.length].c;
+      for (let half = 0; half < 2; half++) {
+        const pts = [];
+        const start = a0 + half * Math.PI;
+        for (let a = start; a <= start + len; a += 0.02) {
+          pts.push({ x: Math.cos(a) * r, y: Math.sin(a) * r });
+        }
+        strokePath(pts, color, 2.5 + i * 0.35, 1);
+      }
+    });
+  }
+
+  function wipe() {
+    octx.save();
+    octx.setTransform(1, 0, 0, 1, 0, 0);
+    octx.clearRect(0, 0, off.width, off.height);
+    octx.restore();
+  }
+
+  /* ---------- pointer ---------- */
+  const ptr = { x: 0, y: 0, inside: false, touch: false };
+  let drawing = false;
+  let prev = { x: 0, y: 0 };
+  let lastDisc = { x: 0, y: 0 };
+
+  function local(e) {
+    const r = canvas.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+  function toDisc(p, a) {
+    const sx = p.x - W / 2, sy = p.y - W / 2;
+    const co = Math.cos(a), si = Math.sin(a);
+    return { x: sx * co + sy * si, y: -sx * si + sy * co };
+  }
+
+  canvas.addEventListener('pointerdown', (e) => {
+    const p = local(e);
+    if (Math.hypot(p.x - W / 2, p.y - W / 2) > R + 12) return;
+    try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+    ptr.x = p.x; ptr.y = p.y; ptr.inside = true; ptr.touch = e.pointerType !== 'mouse';
+    drawing = true;
+    prev = { x: p.x, y: p.y };
+    lastDisc = toDisc(p, state.angle);
+    strokePath([lastDisc], state.color, state.width);
+    e.preventDefault();
+  });
+  canvas.addEventListener('pointermove', (e) => {
+    const p = local(e);
+    ptr.x = p.x; ptr.y = p.y; ptr.inside = true; ptr.touch = e.pointerType !== 'mouse';
+  });
+  const endDraw = (e) => {
+    drawing = false;
+    if (e.pointerType && e.pointerType !== 'mouse') ptr.inside = false;
+  };
+  canvas.addEventListener('pointerup', endDraw);
+  canvas.addEventListener('pointercancel', endDraw);
+  canvas.addEventListener('pointerleave', () => { if (!drawing) ptr.inside = false; });
+
+  function paintFrame(a0, a1) {
+    const c = W / 2, dA = a1 - a0;
+    const r = Math.hypot(ptr.x - c, ptr.y - c);
+    const move = Math.hypot(ptr.x - prev.x, ptr.y - prev.y);
+    const len = Math.max(Math.abs(dA) * r, move);
+    if (len < 0.05) { prev = { x: ptr.x, y: ptr.y }; return; }
+    const n = Math.min(500, Math.ceil(len / 1.5));
+    const pts = [lastDisc];
+    for (let i = 1; i <= n; i++) {
+      const u = i / n, a = a0 + dA * u;
+      const sx = prev.x + (ptr.x - prev.x) * u - c;
+      const sy = prev.y + (ptr.y - prev.y) * u - c;
+      const co = Math.cos(a), si = Math.sin(a);
+      pts.push({ x: sx * co + sy * si, y: -sx * si + sy * co });
+    }
+    strokePath(pts, state.color, state.width);
+    lastDisc = pts[pts.length - 1];
+    prev = { x: ptr.x, y: ptr.y };
+  }
+
+  /* ---------- render ---------- */
+  function render() {
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, W);
+    const cx = W / 2, cy = W / 2;
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, R + 6, 0, TAU);
+    ctx.strokeStyle = C.ring;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(state.angle);
+    ctx.beginPath();
+    ctx.arc(0, 0, R, 0, TAU);
+    ctx.clip();
+
+    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, R);
+    g.addColorStop(0, C.discIn);
+    g.addColorStop(1, C.discOut);
+    ctx.fillStyle = g;
+    ctx.fillRect(-R, -R, 2 * R, 2 * R);
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+    ctx.lineWidth = 1;
+    for (let f = 0.2; f < 1; f += 0.2) {
+      ctx.beginPath();
+      ctx.arc(0, 0, R * f, 0, TAU);
+      ctx.stroke();
+    }
+
+    ctx.drawImage(off, -R, -R, 2 * R, 2 * R);
+
+    for (let i = 0; i < 48; i++) {
+      const a = (i * TAU) / 48;
+      const major = i % 12 === 0;
+      ctx.beginPath();
+      ctx.arc(Math.cos(a) * (R - 9), Math.sin(a) * (R - 9), major ? 2.4 : 1.2, 0, TAU);
+      ctx.fillStyle = major ? C.accent : 'rgba(255,255,255,0.22)';
+      ctx.fill();
+    }
+    ctx.beginPath();
+    ctx.arc(0, 0, 5, 0, TAU);
+    ctx.fillStyle = C.bg;
+    ctx.fill();
+    ctx.strokeStyle = C.ring;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.restore();
+
+    if (ptr.inside) {
+      const rr = Math.max(state.width / 2, 1.5);
+      const dx = ptr.x - cx, dy = ptr.y - cy;
+      ctx.lineWidth = 1.25;
+      ctx.strokeStyle = state.color;
+      for (let i = 0; i < state.sym; i++) {
+        const a = (i * TAU) / state.sym, co = Math.cos(a), si = Math.sin(a);
+        ctx.globalAlpha = i === 0 ? 0.95 : 0.4;
+        ctx.beginPath();
+        ctx.arc(cx + dx * co - dy * si, cy + dx * si + dy * co, rr, 0, TAU);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  let last = performance.now();
+  function frame(t) {
+    const dt = Math.min(0.05, (t - last) / 1000);
+    last = t;
+    state.rpm += (state.targetRpm - state.rpm) * (1 - Math.exp(-dt * 2.5));
+    if (Math.abs(state.targetRpm - state.rpm) < 0.05) state.rpm = state.targetRpm;
+    const prevA = state.angle;
+    state.angle += state.dir * state.rpm * (Math.PI / 30) * dt;
+    if (state.angle > 1e4) state.angle %= TAU;
+    if (drawing) paintFrame(prevA, state.angle);
+    render();
+    requestAnimationFrame(frame);
+  }
+
+  /* ---------- controls ---------- */
+  const swWrap = $('swatches');
+  const customLabel = swWrap.querySelector('.custom');
+  const swButtons = [];
+  PALETTE.forEach((p, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'sw';
+    b.style.background = p.c;
+    b.title = p.n;
+    b.setAttribute('aria-label', '畫筆顏色：' + p.n);
+    b.setAttribute('aria-pressed', i === 4 ? 'true' : 'false');
+    b.addEventListener('click', () => setColor(p.c, b));
+    swWrap.insertBefore(b, customLabel);
+    swButtons.push(b);
+  });
+
+  function setColor(c, btn) {
+    state.color = c;
+    swButtons.forEach((b) => b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'));
+    $('pick').style.background = btn ? '' : c;
+    refreshBrush();
+  }
+  $('custom').addEventListener('input', (e) => setColor(e.target.value, null));
+
+  function refreshBrush() {
+    const d = Math.min(40, state.width);
+    const dot = $('dot');
+    dot.style.width = d + 'px';
+    dot.style.height = d + 'px';
+    dot.style.background = state.color;
+    $('widthOut').textContent = state.width + ' px';
+  }
+  $('width').addEventListener('input', (e) => {
+    state.width = Number(e.target.value);
+    refreshBrush();
+  });
+
+  const presetBtns = Array.from(document.querySelectorAll('#presets .btn'));
+  function setSpeed(v) {
+    state.targetRpm = v;
+    $('speed').value = String(v);
+    $('speedOut').textContent = v === 0 ? '停止' : v + ' 轉/分';
+    presetBtns.forEach((b) => b.setAttribute('aria-pressed', Number(b.dataset.rpm) === v ? 'true' : 'false'));
+  }
+  presetBtns.forEach((b) => b.addEventListener('click', () => setSpeed(Number(b.dataset.rpm))));
+  $('speed').addEventListener('input', (e) => setSpeed(Number(e.target.value)));
+
+  $('dir').addEventListener('click', (e) => {
+    state.dir = -state.dir;
+    e.currentTarget.textContent = state.dir === 1 ? '順時針' : '逆時針';
+    e.currentTarget.setAttribute('aria-pressed', state.dir === 1 ? 'false' : 'true');
+  });
+
+  const symBtns = Array.from(document.querySelectorAll('#syms .btn'));
+  symBtns.forEach((b) => b.addEventListener('click', () => {
+    state.sym = Number(b.dataset.sym);
+    symBtns.forEach((x) => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+    $('symOut').textContent = state.sym === 1 ? '關閉' : state.sym + ' 瓣';
+  }));
+
+  const clearBtn = $('clearBtn');
+  let clearTimer = 0;
+  function disarm() {
+    clearTimeout(clearTimer);
+    clearBtn.textContent = '清空畫面';
+    clearBtn.setAttribute('aria-pressed', 'false');
+  }
+  clearBtn.addEventListener('click', () => {
+    if (clearBtn.getAttribute('aria-pressed') === 'false') {
+      clearBtn.textContent = '再按一次，清空畫面';
+      clearBtn.setAttribute('aria-pressed', 'true');
+      clearTimer = setTimeout(disarm, 3000);
+    } else {
+      disarm();
+      wipe();
+    }
+  });
+
+  /* ---------- background music (generated, no audio files) ---------- */
+  const music = (() => {
+    const chords = [
+      [130.81, 196.0, 293.66, 329.63],
+      [110.0, 164.81, 196.0, 261.63],
+      [87.31, 130.81, 164.81, 220.0],
+      [98.0, 146.83, 164.81, 246.94]
+    ];
+    const bells = [523.25, 587.33, 659.25, 783.99, 880.0, 1046.5];
+    let ac = null, master = null, bus = null;
+    let on = false, ci = 0, vol = 0.5, tChord = 0, tBell = 0, tSleep = 0;
+
+    function impulse() {
+      const len = Math.floor(ac.sampleRate * 3.5);
+      const buf = ac.createBuffer(2, len, ac.sampleRate);
+      for (let ch = 0; ch < 2; ch++) {
+        const d = buf.getChannelData(ch);
+        for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6);
+      }
+      return buf;
+    }
+    function build() {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      ac = new AC();
+      master = ac.createGain();
+      master.gain.value = 0;
+      master.connect(ac.destination);
+      bus = ac.createGain();
+      const lp = ac.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = 2200;
+      bus.connect(lp);
+      lp.connect(master);
+      const conv = ac.createConvolver();
+      conv.buffer = impulse();
+      const wet = ac.createGain();
+      wet.gain.value = 0.6;
+      lp.connect(conv);
+      conv.connect(wet);
+      wet.connect(master);
+    }
+    function pad(freqs, t, dur) {
+      freqs.forEach((f, i) => {
+        [['sine', 0, 0.045], ['triangle', 6, 0.012]].forEach(([type, det, level]) => {
+          const o = ac.createOscillator();
+          o.type = type;
+          o.frequency.value = f;
+          o.detune.value = det + (i - 1.5) * 2;
+          const g = ac.createGain();
+          g.gain.setValueAtTime(0.0001, t);
+          g.gain.linearRampToValueAtTime(level, t + 2.5);
+          g.gain.linearRampToValueAtTime(0.0001, t + dur);
+          o.connect(g);
+          g.connect(bus);
+          o.start(t);
+          o.stop(t + dur + 0.1);
+        });
+      });
+    }
+    function bell(f, t) {
+      [[1, 0.07], [2, 0.015]].forEach(([mult, level]) => {
+        const o = ac.createOscillator();
+        o.type = 'sine';
+        o.frequency.value = f * mult;
+        const g = ac.createGain();
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.linearRampToValueAtTime(level, t + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 4);
+        o.connect(g);
+        g.connect(bus);
+        o.start(t);
+        o.stop(t + 4.2);
+      });
+    }
+    function chordLoop() {
+      if (!on) return;
+      pad(chords[ci], ac.currentTime + 0.05, 10);
+      ci = (ci + 1) % chords.length;
+      tChord = setTimeout(chordLoop, 7500);
+    }
+    function bellLoop() {
+      if (!on) return;
+      bell(bells[Math.floor(Math.random() * bells.length)], ac.currentTime + 0.05);
+      tBell = setTimeout(bellLoop, 1800 + Math.random() * 3200);
+    }
+    async function start() {
+      if (!ac) build();
+      clearTimeout(tSleep);
+      try { await ac.resume(); } catch (_) {}
+      on = true;
+      master.gain.cancelScheduledValues(ac.currentTime);
+      master.gain.setTargetAtTime(vol * 0.9, ac.currentTime, 0.8);
+      chordLoop();
+      bellLoop();
+    }
+    function stop() {
+      on = false;
+      clearTimeout(tChord);
+      clearTimeout(tBell);
+      if (!ac) return;
+      master.gain.setTargetAtTime(0, ac.currentTime, 0.5);
+      tSleep = setTimeout(() => { if (!on) ac.suspend(); }, 2000);
+    }
+    function setVolume(v) {
+      vol = v;
+      if (on && ac) master.gain.setTargetAtTime(vol * 0.9, ac.currentTime, 0.1);
+    }
+    document.addEventListener('visibilitychange', () => {
+      if (!on || !ac) return;
+      if (document.hidden) ac.suspend(); else ac.resume();
+    });
+    return { start, stop, setVolume, isOn: () => on };
+  })();
+
+  const musicBtn = $('musicBtn');
+  musicBtn.addEventListener('click', () => {
+    if (music.isOn()) {
+      music.stop();
+      musicBtn.textContent = '播放音樂';
+      musicBtn.setAttribute('aria-pressed', 'false');
+    } else {
+      music.start();
+      musicBtn.textContent = '暫停音樂';
+      musicBtn.setAttribute('aria-pressed', 'true');
+    }
+  });
+  $('vol').addEventListener('input', (e) => music.setVolume(Number(e.target.value) / 100));
+
+  /* ---------- boot ---------- */
+  resize();
+  setSpeed(state.targetRpm);
+  refreshBrush();
+  if (window.ResizeObserver) new ResizeObserver(resize).observe(stage);
+  window.addEventListener('resize', resize);
+  render();
+  requestAnimationFrame((t) => { last = t; requestAnimationFrame(frame); });
+})();
+</script>
+
+</body></html>
