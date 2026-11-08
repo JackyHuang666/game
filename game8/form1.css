@@ -1,0 +1,1711 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>立體沙畫</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500&family=Noto+Serif+TC:wght@300;500&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+  /* Layout: full-bleed 3D jar on a lamp-lit dark ground; title top-left, three quiet tools top-right,
+     one floating dock at the bottom, a single drawer for colour / sand / sound. */
+  :root {
+    --ink: #0c0b0f;
+    --panel: rgba(25, 22, 28, 0.74);
+    --panel-solid: #19161d;
+    --line: rgba(255, 232, 200, 0.14);
+    --paper: #f2e8d8;
+    --dim: #a89d8e;
+    --lamp: #f0b56c;
+    --lamp-ink: #2a1a08;
+    --serif: 'Noto Serif TC', 'Songti TC', 'PMingLiU', serif;
+    --sans: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', system-ui, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    color-scheme: dark;
+  }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    margin: 0; background: var(--ink); color: var(--paper);
+    font-family: var(--sans); font-size: 14px; line-height: 1.5;
+    -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none;
+  }
+  #root { position: fixed; inset: 0; }
+  canvas.stage { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
+  canvas.stage.rotate { cursor: grab; }
+  .gutter { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .layer { position: absolute; left: 0; right: 0; pointer-events: none; }
+  .layer > * { pointer-events: auto; }
+  .ui-top { top: 0; padding-top: calc(env(safe-area-inset-top, 0px) + 14px); }
+  .ui-dock { bottom: 0; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 14px); display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .brand h1 { font-family: var(--serif); font-weight: 300; font-size: 22px; letter-spacing: 0.28em; margin: 0; text-shadow: 0 1px 14px rgba(0,0,0,.6); }
+  .brand p { margin: 2px 0 0; font-size: 11px; letter-spacing: 0.14em; color: var(--dim); }
+  .glass { background: var(--panel); backdrop-filter: blur(18px) saturate(1.2); -webkit-backdrop-filter: blur(18px) saturate(1.2); border: 1px solid var(--line); border-radius: 16px; }
+  .ibtn { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 11px; border: 1px solid transparent; background: transparent; color: var(--paper); cursor: pointer; transition: background .15s, color .15s, border-color .15s; }
+  .ibtn:hover { background: rgba(255, 232, 200, 0.08); }
+  .ibtn[aria-pressed="true"] { background: rgba(240, 181, 108, 0.16); border-color: rgba(240, 181, 108, 0.42); color: var(--lamp); }
+  .dockbtn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 46px; padding: 7px 4px 6px; border-radius: 11px; border: 1px solid transparent; background: transparent; color: var(--paper); font: inherit; font-size: 11px; letter-spacing: 0.1em; cursor: pointer; transition: background .15s, color .15s; }
+  .dockbtn:hover:not(:disabled) { background: rgba(255, 232, 200, 0.08); }
+  .dockbtn:disabled { opacity: .32; cursor: default; }
+  .dockbtn[aria-pressed="true"] { background: rgba(240, 181, 108, 0.16); border-color: rgba(240, 181, 108, 0.42); color: var(--lamp); }
+  .dockbtn .sw { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--paper); box-sizing: border-box; }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--lamp); outline-offset: 2px; }
+  .drawer { position: absolute; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 156px); width: min(360px, calc(100vw - 32px)); max-height: min(58vh, 560px); overflow-y: auto; overscroll-behavior: contain; padding: 16px; pointer-events: auto; background: var(--panel-solid); background: var(--panel); }
+  .drawer h2 { font-family: var(--serif); font-weight: 500; font-size: 13px; letter-spacing: 0.22em; color: var(--lamp); margin: 0 0 10px; }
+  .drawer section + section { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+  .chip { padding: 5px 11px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--dim); font: inherit; font-size: 12px; letter-spacing: 0.08em; cursor: pointer; }
+  .chip[aria-pressed="true"] { color: var(--lamp-ink); background: var(--lamp); border-color: var(--lamp); }
+  .swatch { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: 0; padding: 0; cursor: pointer; color: var(--dim); font: inherit; font-size: 10.5px; letter-spacing: 0.04em; }
+  .swatch i { display: block; width: 100%; aspect-ratio: 1; max-width: 44px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); transition: transform .12s; }
+  .swatch:hover i { transform: scale(1.08); }
+  .swatch[aria-pressed="true"] i { box-shadow: 0 0 0 2px var(--ink), 0 0 0 4px var(--lamp); }
+  .swatch .del { position: absolute; top: -4px; right: 2px; width: 18px; height: 18px; border-radius: 50%; background: #3a2a2a; color: #ffd6d0; display: grid; place-items: center; border: 1px solid #6b4a46; }
+  .lbl { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; color: var(--dim); letter-spacing: 0.08em; margin-bottom: 4px; }
+  .lbl b { font-weight: 400; color: var(--paper); font-family: var(--mono); font-size: 11px; }
+  input[type="range"] { width: 100%; accent-color: var(--lamp); height: 22px; margin: 0; }
+  input[type="text"] { width: 100%; box-sizing: border-box; background: rgba(255,255,255,.05); border: 1px solid var(--line); color: var(--paper); border-radius: 9px; padding: 7px 10px; font-family: var(--mono); font-size: 13px; user-select: text; -webkit-user-select: text; }
+  input[type="color"] { width: 40px; height: 36px; padding: 0; border: 1px solid var(--line); border-radius: 9px; background: none; cursor: pointer; }
+  .row { display: flex; align-items: center; gap: 10px; }
+  .togl { display: flex; justify-content: space-between; align-items: center; width: 100%; background: none; border: 0; color: var(--paper); font: inherit; padding: 7px 0; cursor: pointer; letter-spacing: 0.06em; }
+  .togl .pill { width: 36px; height: 20px; border-radius: 999px; background: rgba(255,255,255,.14); position: relative; transition: background .15s; flex: none; }
+  .togl .pill::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--paper); transition: transform .15s; }
+  .togl[aria-pressed="true"] .pill { background: var(--lamp); }
+  .togl[aria-pressed="true"] .pill::after { transform: translateX(16px); background: var(--lamp-ink); }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 14px; border-radius: 10px; border: 1px solid var(--line); background: rgba(255,255,255,.05); color: var(--paper); font: inherit; font-size: 13px; letter-spacing: 0.08em; cursor: pointer; }
+  .btn:hover { background: rgba(255,255,255,.1); }
+  .btn.primary { background: var(--lamp); color: var(--lamp-ink); border-color: var(--lamp); }
+  .hint, .toast { position: absolute; left: 50%; transform: translateX(-50%); padding: 7px 14px; border-radius: 999px; font-size: 12px; letter-spacing: 0.1em; white-space: nowrap; max-width: calc(100vw - 32px); overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
+  .hint { bottom: calc(env(safe-area-inset-bottom, 0px) + 168px); color: var(--dim); background: rgba(12,11,15,.55); animation: fadeout 1s ease 4.5s forwards; }
+  .toast { bottom: calc(env(safe-area-inset-bottom, 0px) + 168px); color: var(--paper); background: rgba(25,22,28,.9); border: 1px solid var(--line); }
+  .reveal { position: absolute; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 14px); opacity: .22; transition: opacity .3s; }
+  .reveal:hover, .reveal:focus-visible { opacity: .9; }
+  .modal { position: absolute; inset: 0; display: grid; place-items: center; padding: 20px max(16px, env(safe-area-inset-right, 0px)); background: rgba(6,5,8,.82); z-index: 20; }
+  .modal .card { max-width: min(760px, 100%); max-height: 100%; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+  .modal img { max-width: 100%; max-height: 62vh; border-radius: 10px; border: 1px solid var(--line); user-select: auto; -webkit-user-select: auto; -webkit-touch-callout: default; }
+  .modal p { margin: 0; font-size: 12px; color: var(--dim); letter-spacing: 0.08em; text-align: center; }
+  .errbox { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px; color: var(--dim); }
+  .prog { position: relative; width: 48px; height: 48px; display: grid; place-items: center; color: var(--paper); flex: none; }
+  .prog svg { position: absolute; inset: 0; }
+  .prog .v { transition: stroke-dashoffset .4s ease, stroke .3s; }
+  .prog span { font-family: var(--mono); font-size: 11px; }
+  .prog.done { color: var(--lamp); }
+  .btn:disabled { opacity: .4; cursor: default; }
+  .cap { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 214px); display: inline-flex; align-items: center; gap: 8px; padding: 11px 20px; border-radius: 999px; border: 1px solid var(--lamp); background: var(--lamp); color: var(--lamp-ink); font: inherit; font-size: 14px; letter-spacing: .14em; cursor: pointer; white-space: nowrap; animation: glowp 2.2s ease-out infinite; }
+  .sealcard { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 164px); width: min(380px, calc(100vw - 32px)); padding: 14px; }
+  .gal { position: absolute; inset: 0; z-index: 30; background: rgba(9, 8, 11, .96); overflow-y: auto; overscroll-behavior: contain; padding-top: calc(env(safe-area-inset-top, 0px) + 10px); padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 28px); }
+  .gal-head { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding-block: 8px; background: linear-gradient(rgba(9, 8, 11, 1), rgba(9, 8, 11, .9)); }
+  .gal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 22px 14px; margin-top: 14px; }
+  .work { min-width: 0; display: flex; flex-direction: column; gap: 6px; background: none; border: 0; padding: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+  .work .th { aspect-ratio: 3 / 4; width: 100%; border-radius: 10px; overflow: hidden; background: #15121a; border: 1px solid var(--line); box-sizing: border-box; }
+  .work .th img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .work .plank { height: 6px; margin: -2px -6px 2px; border-radius: 2px; background: linear-gradient(#4a3a2e, #2a2019); box-shadow: 0 8px 14px rgba(0, 0, 0, .55); }
+  .work .nm { font-size: 12.5px; letter-spacing: .06em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .work .dt { font-family: var(--mono); font-size: 10.5px; color: var(--dim); }
+  .work:hover .th { border-color: rgba(240, 181, 108, .5); }
+  .slot { cursor: default; }
+  .slot .th { border-style: dashed; background: transparent; display: grid; place-items: center; color: rgba(255, 232, 200, .22); font-size: 11px; letter-spacing: .2em; }
+  .slot:hover .th { border-color: var(--line); }
+  .detail { display: flex; flex-direction: column; align-items: center; gap: 12px; padding-top: 14px; }
+  .turn { width: min(320px, 100%); aspect-ratio: 3 / 4; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: #15121a; touch-action: none; cursor: ew-resize; box-sizing: border-box; }
+  .turn img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; user-select: none; -webkit-user-drag: none; }
+  .note { margin: 6px 0 0; font-size: 12px; color: var(--dim); letter-spacing: .06em; }
+  @keyframes glowp { 0% { box-shadow: 0 0 0 0 rgba(240, 181, 108, .45), 0 8px 24px rgba(0, 0, 0, .45); } 100% { box-shadow: 0 0 0 16px rgba(240, 181, 108, 0), 0 8px 24px rgba(0, 0, 0, .45); } }
+  @keyframes fadeout { to { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .cap { animation: none; } .prog .v { transition: none; } .hint { animation-duration: .01s; } .swatch i, .togl .pill::after { transition: none; } }
+</style>
+
+<div id="root"></div>
+
+<script>
+(function () {
+'use strict';
+
+/* ───────────────────────── 常數與沙子資料 ───────────────────────── */
+var R = 1.53, N = 64, NN = N * N, CELL = 2 * R / N;
+var LEV = 144, LV = 2.5 / LEV, BASE = 0.14, NOZY = 3.2;
+var DX = [1, -1, 0, 0], DZ = [0, 0, 1, -1];
+
+var valid = new Uint8Array(NN), rad = new Float32Array(NN), nbr = new Int16Array(NN * 4);
+nbr.fill(-1);
+var validList = [];
+(function () {
+  for (var iz = 0; iz < N; iz++) for (var ix = 0; ix < N; ix++) {
+    var i = iz * N + ix, x = -R + (ix + 0.5) * CELL, z = -R + (iz + 0.5) * CELL, r = Math.hypot(x, z);
+    rad[i] = r; if (r <= R) { valid[i] = 1; validList.push(i); }
+  }
+  for (var k = 0; k < validList.length; k++) {
+    var c = validList[k], cx = c % N, cz = (c / N) | 0;
+    for (var d = 0; d < 4; d++) {
+      var jx = cx + DX[d], jz = cz + DZ[d];
+      if (jx < 0 || jz < 0 || jx >= N || jz >= N) continue;
+      var j = jz * N + jx; if (valid[j]) nbr[c * 4 + d] = j;
+    }
+  }
+})();
+
+var L5 = new Float32Array(32), L6 = new Float32Array(64);
+for (var q = 0; q < 32; q++) L5[q] = Math.pow(q / 31, 2.2);
+for (q = 0; q < 64; q++) L6[q] = Math.pow(q / 63, 2.2);
+function pack565(r, g, b) { return ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3); }
+function hexToRgb(hex) {
+  var m = /^#?([0-9a-f]{6})$/i.exec(hex || '');
+  if (!m) return { r: 217, g: 185, b: 138 };
+  var n = parseInt(m[1], 16); return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+function rgbToHex(r, g, b) { return '#' + [r, g, b].map(function (v) { return Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0'); }).join(''); }
+function normHex(s) {
+  s = String(s || '').trim().replace(/^#/, '');
+  if (/^[0-9a-f]{3}$/i.test(s)) s = s.split('').map(function (c) { return c + c; }).join('');
+  return /^[0-9a-f]{6}$/i.test(s) ? '#' + s.toLowerCase() : null;
+}
+
+/* ───────────────────────── 聲音：落沙 ASMR 與環境音 ───────────────────────── */
+var Snd = (function () {
+  var ctx = null, master, comp, flowGain, bp, crackle, ambBus, rev, droneG, noiseG, bowlTimer = null, lastF = 0, musicBus, mrev, mTimer = null, mNext = 0, mStep = 0;
+  var st = { vol: 0.6, muted: false, sandOn: true, ambOn: false, ambMode: 'bowl', musicOn: true, mPad: true, mPiano: true, mBox: false, musicVol: 0.5, zen: false };
+  var scale = [196, 220, 261.63, 293.66, 329.63], lastNote = -1;
+
+  function noiseBuf(sec, brown) {
+    var sr = ctx.sampleRate, b = ctx.createBuffer(1, Math.floor(sr * sec), sr), d = b.getChannelData(0), last = 0;
+    for (var i = 0; i < d.length; i++) {
+      var w = Math.random() * 2 - 1;
+      if (brown) { last = (last + 0.02 * w) / 1.02; d[i] = last * 3.5; } else d[i] = w;
+    }
+    return b;
+  }
+  function crackleBuf() {
+    var sr = ctx.sampleRate, b = ctx.createBuffer(1, sr * 3, sr), d = b.getChannelData(0), i = 0;
+    while (i < d.length) {
+      i += Math.floor(-Math.log(1 - Math.random()) * sr * 0.004) + 1;
+      var len = Math.floor(sr * (0.0004 + Math.random() * 0.0016)), amp = 0.3 + Math.random() * 0.7;
+      for (var k = 0; k < len && i + k < d.length; k++) d[i + k] += (Math.random() * 2 - 1) * amp * Math.exp(-k / (len * 0.3));
+    }
+    return b;
+  }
+  function loop(buf) { var s = ctx.createBufferSource(); s.buffer = buf; s.loop = true; s.start(); return s; }
+
+  function ensure() {
+    if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return true; }
+    var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return false;
+    try { ctx = new AC(); } catch (e) { return false; }
+    master = ctx.createGain(); comp = ctx.createDynamicsCompressor();
+    master.connect(comp); comp.connect(ctx.destination);
+    // 落沙：細碎顆粒 + 氣音 + 低沉堆積
+    flowGain = ctx.createGain(); flowGain.gain.value = 0; flowGain.connect(master);
+    var hiss = loop(noiseBuf(2, false)); bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 3000; bp.Q.value = 0.7;
+    var hg = ctx.createGain(); hg.gain.value = 0.32; hiss.connect(bp); bp.connect(hg); hg.connect(flowGain);
+    crackle = loop(crackleBuf()); var hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 1800;
+    var cg = ctx.createGain(); cg.gain.value = 1.1; crackle.connect(hp); hp.connect(cg); cg.connect(flowGain);
+    var low = loop(noiseBuf(2, true)); var lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 420;
+    var lg = ctx.createGain(); lg.gain.value = 0.22; low.connect(lp); lp.connect(lg); lg.connect(flowGain);
+    // 環境：混響、持續低音、白噪音
+    ambBus = ctx.createGain(); ambBus.gain.value = 0; ambBus.connect(master);
+    rev = ctx.createConvolver();
+    var sr = ctx.sampleRate, len = Math.floor(sr * 3.4), ir = ctx.createBuffer(2, len, sr);
+    for (var ch = 0; ch < 2; ch++) { var dd = ir.getChannelData(ch); for (var i = 0; i < len; i++) dd[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6); }
+    rev.buffer = ir; var rg = ctx.createGain(); rg.gain.value = 0.7; rev.connect(rg); rg.connect(ambBus);
+    droneG = ctx.createGain(); droneG.gain.value = 0; droneG.connect(ambBus);
+    [[65.41, 0.05], [98, 0.03], [130.81, 0.015]].forEach(function (p) {
+      var o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = p[0];
+      var g = ctx.createGain(); g.gain.value = p[1]; var lfo = ctx.createOscillator(); lfo.frequency.value = 0.07 + Math.random() * 0.06;
+      var lg2 = ctx.createGain(); lg2.gain.value = p[1] * 0.4; lfo.connect(lg2); lg2.connect(g.gain);
+      o.connect(g); g.connect(droneG); o.start(); lfo.start();
+    });
+    noiseG = ctx.createGain(); noiseG.gain.value = 0; noiseG.connect(ambBus);
+    var wind = loop(noiseBuf(4, true)); var wl = ctx.createBiquadFilter(); wl.type = 'lowpass'; wl.frequency.value = 520;
+    var wg = ctx.createGain(); wg.gain.value = 0.35; var wlfo = ctx.createOscillator(); wlfo.frequency.value = 0.11;
+    var wlg = ctx.createGain(); wlg.gain.value = 0.15; wlfo.connect(wlg); wlg.connect(wg.gain); wlfo.start();
+    wind.connect(wl); wl.connect(wg); wg.connect(noiseG);
+    musicBus = ctx.createGain(); musicBus.gain.value = 0; musicBus.connect(master);
+    mrev = ctx.createConvolver(); mrev.buffer = rev.buffer;
+    var mrg = ctx.createGain(); mrg.gain.value = 0.9; mrev.connect(mrg); mrg.connect(musicBus);
+    applyAll(); return true;
+  }
+  function applyAll() {
+    if (!ctx) return;
+    var t = ctx.currentTime, v = st.muted ? 0 : st.vol * st.vol;
+    master.gain.setTargetAtTime(v, t, 0.05);
+    var on = st.ambOn;
+    ambBus.gain.setTargetAtTime(on ? 0.9 : 0, t, 0.6);
+    droneG.gain.setTargetAtTime(on && st.ambMode !== 'noise' ? 1 : 0, t, 1.2);
+    noiseG.gain.setTargetAtTime(on && st.ambMode !== 'bowl' ? 1 : 0, t, 1.2);
+    if (!st.sandOn) flowGain.gain.setTargetAtTime(0, t, 0.05);
+    scheduleBowl(); applyMusic();
+  }
+// ── 冥想音樂：和弦鋪底、鋼琴琶音、木吉他撥弦（全部即時合成）
+  function mtof(m) { return 440 * Math.pow(2, (m - 69) / 12); }
+  var CHORDS = [[48, 55, 59, 62, 64], [45, 52, 55, 59, 64], [41, 48, 52, 57, 60], [43, 50, 55, 59, 62]];
+  function stepDur() { return 0.54 * (st.zen ? 1.6 : 1); }
+  function send(node, amt) { var g = ctx.createGain(); g.gain.value = amt; node.connect(g); g.connect(mrev); }
+  function mvoice(f, t, dur, type, amp, atk, cutoff, amt) {
+    var o = ctx.createOscillator(); o.type = type; o.frequency.value = f;
+    var lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = cutoff;
+    var g = ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(amp, t + atk); g.gain.setTargetAtTime(0, t + atk, dur / 3.5);
+    o.connect(lp); lp.connect(g); g.connect(musicBus); send(g, amt);
+    o.start(t); o.stop(t + atk + dur * 1.6);
+  }
+  function piano(f, t, vel) {
+    mvoice(f, t, 2.8, 'sine', 0.16 * vel, 0.006, 4200, 0.5);
+    mvoice(f * 2, t, 1.5, 'sine', 0.05 * vel, 0.004, 5000, 0.4);
+    mvoice(f * 3.01, t, 0.7, 'sine', 0.015 * vel, 0.003, 5000, 0.3);
+  }
+  function mpad(f, t, len) {
+    [-4, 3].forEach(function (c) {
+      var o = ctx.createOscillator(); o.type = 'triangle'; o.frequency.value = f; o.detune.value = c;
+      var lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 700;
+      var g = ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.03, t + 3);
+      g.gain.setValueAtTime(0.03, t + len - 0.5); g.gain.linearRampToValueAtTime(0, t + len + 3);
+      o.connect(lp); lp.connect(g); g.connect(musicBus); send(g, 0.8);
+      o.start(t); o.stop(t + len + 3.2);
+    });
+  }
+  // 樂盒：高音區的清脆金屬音，短促衰減，帶一點非整數倍的泛音
+  function mbox(f, t, vel) {
+    mvoice(f, t, 1.7, 'sine', 0.1 * vel, 0.002, 8000, 0.55);
+    mvoice(f * 4, t, 0.55, 'sine', 0.03 * vel, 0.002, 9000, 0.5);
+    mvoice(f * 6.27, t, 0.22, 'sine', 0.012 * vel, 0.002, 9000, 0.5);
+  }
+  function mstep(t, n) {
+    var chord = CHORDS[Math.floor(n / 16) % CHORDS.length], sd = stepDur();
+    if (st.mPad && n % 16 === 0) {
+      chord.forEach(function (m, i) { mpad(mtof(m + (i > 2 ? 12 : 0)), t, 16 * sd); });
+      mpad(mtof(chord[0] - 12), t, 16 * sd);
+    }
+    if (st.mPiano) {
+      var every = st.mBox ? 4 : 2;
+      if (n % every === 0) {
+        var arp = [0, 2, 3, 4, 3, 2, 1, 2], idx = arp[(n / every) % arp.length];
+        piano(mtof(chord[idx] + 12), t + Math.random() * 0.02, 0.7 + Math.random() * 0.3);
+      }
+    }
+    if (st.mBox && Math.random() > 0.22) {
+      var pat = [0, 2, 4, 2, 3, 1, 4, 3], k = pat[n % 8];
+      mbox(mtof(chord[k] + 24), t + Math.random() * 0.012, 0.6 + Math.random() * 0.4);
+    }
+  }
+  function msched() {
+    if (!ctx || !st.musicOn) return;
+    var now = ctx.currentTime; if (mNext < now) mNext = now + 0.1;
+    while (mNext < now + 1.6) { mstep(mNext, mStep); mNext += stepDur(); mStep++; }
+  }
+  function applyMusic() {
+    if (!ctx || !musicBus) return;
+    var t = ctx.currentTime;
+    musicBus.gain.setTargetAtTime(st.musicOn ? st.musicVol * st.musicVol * 2.2 : 0, t, 0.4);
+    if (st.musicOn && !mTimer) { mNext = t + 0.25; mStep = 0; msched(); mTimer = setInterval(msched, 250); }
+    else if (!st.musicOn && mTimer) { clearInterval(mTimer); mTimer = null; }
+  }
+  function strike() {
+    if (!ctx || !st.ambOn || st.ambMode === 'noise') return;
+    var t = ctx.currentTime, n; do { n = Math.floor(Math.random() * scale.length); } while (n === lastNote); lastNote = n;
+    var f0 = scale[n], out = ctx.createGain(); out.gain.value = 0.5; out.connect(ambBus);
+    var send = ctx.createGain(); send.gain.value = 0.8; out.connect(send); send.connect(rev);
+    [[1, 1, 10], [2.756, 0.45, 7], [5.404, 0.2, 4.5], [8.933, 0.08, 2.8]].forEach(function (p, k) {
+      [-1.2, 1.2].forEach(function (dt) {
+        var o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = f0 * p[0] + dt * (k + 1) * 0.5;
+        var e = ctx.createGain(); e.gain.setValueAtTime(0, t); e.gain.linearRampToValueAtTime(p[1] * 0.5, t + 0.012);
+        e.gain.exponentialRampToValueAtTime(0.0001, t + p[2]); o.connect(e); e.connect(out); o.start(t); o.stop(t + p[2] + 0.1);
+      });
+    });
+  }
+  function scheduleBowl() {
+    clearTimeout(bowlTimer); bowlTimer = null;
+    if (!ctx || !st.ambOn || st.ambMode === 'noise') return;
+    var next = function () { strike(); bowlTimer = setTimeout(next, 11000 + Math.random() * 8000); };
+    bowlTimer = setTimeout(next, 700);
+  }
+  return {
+    ensure: ensure,
+    finale: function () {
+      if (!ctx || st.muted || !musicBus) return;
+      var t = ctx.currentTime + 0.05;
+      if (!st.musicOn) { musicBus.gain.cancelScheduledValues(t); musicBus.gain.setTargetAtTime(0.55, t, 0.05); setTimeout(applyMusic, 9000); }
+      [60, 67, 72, 76, 79, 83, 86].forEach(function (m, i) { piano(mtof(m), t + i * 0.3, 0.8); });
+      [48, 55, 60, 64, 67].forEach(function (m) { mpad(mtof(m), t + 1.2, 3.5); });
+      piano(mtof(91), t + 2.4, 0.5);
+    },
+    chime: function () {
+      if (!ctx || st.muted) return;
+      var t = ctx.currentTime, out = ctx.createGain(); out.gain.value = 0.32; out.connect(master);
+      [[392, 1, 5], [392 * 2.756, 0.3, 3.2], [392 * 5.404, 0.12, 2]].forEach(function (p) {
+        var o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = p[0];
+        var e = ctx.createGain(); e.gain.setValueAtTime(0, t); e.gain.linearRampToValueAtTime(p[1], t + 0.01); e.gain.exponentialRampToValueAtTime(0.0001, t + p[2]);
+        o.connect(e); e.connect(out); o.start(t); o.stop(t + p[2] + 0.1);
+      });
+    },
+    set: function (patch) { for (var k in patch) st[k] = patch[k]; applyAll(); },
+    setFlow: function (f) {
+      if (!ctx || !st.sandOn) return;
+      if (Math.abs(f - lastF) < 0.01 && f > 0) return; lastF = f;
+      var t = ctx.currentTime;
+      flowGain.gain.setTargetAtTime(f * 0.95, t, 0.09);
+      bp.frequency.setTargetAtTime(1800 + f * 4200, t, 0.1);
+      crackle.playbackRate.setTargetAtTime(0.6 + f * 1.1, t, 0.1);
+    }
+  };
+})();
+
+/* ───────────────────────── 3D 引擎（Three.js） ───────────────────────── */
+function createEngine(canvas, cb) {
+  var coarse = !!(window.matchMedia && matchMedia('(pointer: coarse)').matches);
+  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: !coarse, powerPreference: 'high-performance' });
+  var pr = Math.min(window.devicePixelRatio || 1, coarse ? 1.5 : 2);
+  renderer.setPixelRatio(pr);
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.1;
+  var scene = new THREE.Scene();
+  var camera = new THREE.PerspectiveCamera(36, 1, 0.1, 60);
+
+  // 背景：暖色漸層加細微雜訊，避免暗部色帶
+  (function () {
+    var c = document.createElement('canvas'); c.width = c.height = 512; var g = c.getContext('2d');
+    var gr = g.createRadialGradient(256, 310, 20, 256, 256, 430);
+    gr.addColorStop(0, '#3b2d25'); gr.addColorStop(0.45, '#1e181a'); gr.addColorStop(1, '#09080b');
+    g.fillStyle = gr; g.fillRect(0, 0, 512, 512);
+    var im = g.getImageData(0, 0, 512, 512), d = im.data;
+    for (var i = 0; i < d.length; i += 4) { var n = (Math.random() - 0.5) * 5; d[i] += n; d[i + 1] += n; d[i + 2] += n; }
+    g.putImageData(im, 0, 0);
+    var tex = new THREE.CanvasTexture(c); tex.encoding = THREE.sRGBEncoding; scene.background = tex;
+  })();
+
+  // 環境反射貼圖：暖色視窗光 + 冷色邊緣光
+  var envTex = (function () {
+    var pm = new THREE.PMREMGenerator(renderer), es = new THREE.Scene();
+    var sg = new THREE.SphereGeometry(20, 32, 16), cols = [], p = sg.attributes.position;
+    for (var i = 0; i < p.count; i++) {
+      var y = p.getY(i) / 20, t = (y + 1) / 2;
+      var c = new THREE.Color(0x0a0809).lerp(new THREE.Color(0x2b2119), Math.min(1, t * 1.4));
+      if (y > 0.6) c.lerp(new THREE.Color(0x5a4630), (y - 0.6) / 0.4);
+      cols.push(c.r, c.g, c.b);
+    }
+    sg.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
+    es.add(new THREE.Mesh(sg, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide })));
+    function panel(w, hh, pos, col, k) {
+      var m = new THREE.Mesh(new THREE.PlaneGeometry(w, hh), new THREE.MeshBasicMaterial({ color: new THREE.Color(col).multiplyScalar(k), side: THREE.DoubleSide }));
+      m.position.set(pos[0], pos[1], pos[2]); m.lookAt(0, 1, 0); es.add(m);
+    }
+    panel(7, 9, [11, 6, 8], 0xffd9a0, 5.5); panel(2.4, 10, [-12, 4, -4], 0xa9c4ff, 2.6);
+    panel(9, 9, [0, 14, 0], 0xffe6c0, 2.2); panel(14, 2.2, [0, 3, -14], 0xffcf9a, 1.8);
+    var rt = pm.fromScene(es, 0.015); pm.dispose(); return rt.texture;
+  })();
+  scene.environment = envTex;
+
+  // 燈光
+  var hemi = new THREE.HemisphereLight(0xffe9cf, 0x201a18, 0.5); scene.add(hemi);
+  var sun = new THREE.DirectionalLight(0xffd7a0, 2.5); scene.add(sun);
+  var rim = new THREE.DirectionalLight(0x9fb8ff, 0.8); rim.position.set(-5, 3, -4); scene.add(rim);
+
+  // 暖陽光束
+  var shaftMat = new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+    uniforms: { uOp: { value: 0.06 }, uCol: { value: new THREE.Color(1.0, 0.78, 0.5) } },
+    vertexShader: 'varying vec3 vN; varying vec3 vV; varying float vY; void main(){ vN=normalize(normalMatrix*normal); vec4 mv=modelViewMatrix*vec4(position,1.0); vV=normalize(-mv.xyz); vY=uv.y; gl_Position=projectionMatrix*mv; }',
+    fragmentShader: 'uniform float uOp; uniform vec3 uCol; varying vec3 vN; varying vec3 vV; varying float vY; void main(){ float f=pow(abs(dot(normalize(vN),normalize(vV))),1.6); float a=f*uOp*smoothstep(0.0,0.15,vY)*smoothstep(1.0,0.55,vY); gl_FragColor=vec4(uCol*a,a); }'
+  });
+  var shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 2.0, 10, 48, 1, true), shaftMat);
+  shaft.frustumCulled = false; scene.add(shaft);
+
+  // 底座與接觸陰影
+  var pedestal = new THREE.Mesh(new THREE.CylinderGeometry(2.05, 2.15, 0.24, 96),
+    new THREE.MeshStandardMaterial({ color: 0x2a2420, roughness: 0.5, metalness: 0.1 }));
+  pedestal.position.y = -0.12; scene.add(pedestal);
+  (function () {
+    var c = document.createElement('canvas'); c.width = c.height = 128; var g = c.getContext('2d');
+    var gr = g.createRadialGradient(64, 64, 10, 64, 64, 64); gr.addColorStop(0, 'rgba(0,0,0,.6)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+    var m = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 4.2), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false }));
+    m.rotation.x = -Math.PI / 2; m.position.y = 0.004; m.renderOrder = 1; scene.add(m);
+  })();
+
+  var jar = new THREE.Group(); scene.add(jar);
+
+  // 玻璃容器（車旋輪廓：外壁、杯緣、內壁、內底）
+  // 玻璃：中央幾乎全透明，只在邊緣與高光處反光，避免電腦版整罐發白
+  var glassMat = new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false, side: THREE.DoubleSide,
+    vertexShader: 'varying vec3 vN; varying vec3 vV; void main(){ vec4 wp = modelMatrix * vec4(position, 1.0); vN = normalize(mat3(modelMatrix) * normal); vV = normalize(cameraPosition - wp.xyz); gl_Position = projectionMatrix * viewMatrix * wp; }',
+    fragmentShader: [
+      'varying vec3 vN; varying vec3 vV;',
+      'void main(){',
+      '  vec3 N = normalize(vN); vec3 V = normalize(vV);',
+      '  if (dot(N, V) < 0.0) N = -N;',
+      '  float nv = clamp(dot(N, V), 0.0, 1.0);',
+      '  float fres = pow(1.0 - nv, 3.0);',
+      '  vec3 r = reflect(-V, N);',
+      '  vec3 sky = mix(vec3(0.05, 0.045, 0.05), vec3(0.45, 0.36, 0.27), smoothstep(-0.3, 1.0, r.y));',
+      '  float key = pow(max(dot(r, normalize(vec3(0.55, 0.55, 0.65))), 0.0), 36.0);',
+      '  float rimL = pow(max(dot(r, normalize(vec3(-0.9, 0.25, -0.35))), 0.0), 24.0);',
+      '  float topL = pow(max(r.y, 0.0), 6.0);',
+      '  vec3 col = sky * (0.35 + fres) + vec3(1.0, 0.86, 0.62) * key * 1.6 + vec3(0.62, 0.74, 1.0) * rimL * 0.7 + vec3(1.0, 0.9, 0.75) * topL * 0.05;',
+      '  float a = clamp(0.03 + fres * 0.5 + key * 0.7 + rimL * 0.35, 0.0, 0.85);',
+      '  gl_FragColor = vec4(col, a);',
+      '  #include <tonemapping_fragment>',
+      '  #include <encodings_fragment>',
+      '}'
+    ].join('\n')
+  });
+  var useTrans = false;
+  function setGlass() { }
+  (function () {
+    var ro = 1.62, ri = 1.55, hB = 0.14, top = 2.72, rr = 0.12, ir = 0.08, V2 = THREE.Vector2, pts = [], i, a;
+    pts.push(new V2(0, 0));
+    for (i = 0; i <= 6; i++) { a = -Math.PI / 2 + (i / 6) * (Math.PI / 2); pts.push(new V2(ro - rr + rr * Math.cos(a), rr + rr * Math.sin(a))); }
+    pts.push(new V2(ro, top));
+    for (i = 1; i <= 6; i++) { a = (i / 6) * Math.PI; pts.push(new V2((ro + ri) / 2 + 0.035 * Math.cos(a), top + 0.035 * Math.sin(a))); }
+    pts.push(new V2(ri, hB + ir));
+    for (i = 1; i <= 5; i++) { a = (i / 5) * (Math.PI / 2); pts.push(new V2(ri - ir + ir * Math.cos(a), hB + ir - ir * Math.sin(a))); }
+    pts.push(new V2(0, hB));
+    var glass = new THREE.Mesh(new THREE.LatheGeometry(pts, 128), glassMat); glass.renderOrder = 2; jar.add(glass);
+  })();
+
+  // 沙：頂面高度圖（頂點色）+ 貼壁圓筒（側面層次貼圖）
+  var H = new Uint16Array(NN), V = new Uint16Array(NN * LEV), lock = new Uint8Array(NN);
+  var gnoise = new Float32Array(NN); for (var gi = 0; gi < NN; gi++) gnoise[gi] = 0.95 + Math.random() * 0.1;
+
+  function sparkleTex(w, h, density, mip) {
+    var d = new Uint8Array(w * h * 4);
+    for (var i = 0; i < w * h; i++) { var v = Math.random() < density ? 100 + Math.random() * 155 : 0; d[i * 4] = d[i * 4 + 1] = d[i * 4 + 2] = v; d[i * 4 + 3] = 255; }
+    var t = new THREE.DataTexture(d, w, h, THREE.RGBAFormat); t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.magFilter = THREE.LinearFilter; t.minFilter = mip ? THREE.LinearMipmapLinearFilter : THREE.LinearFilter; t.generateMipmaps = !!mip; t.needsUpdate = true; return t;
+  }
+  var spkTop = sparkleTex(128, 128, 0.1, true); spkTop.repeat.set(5, 5);
+  var spkWall = sparkleTex(1152, 432, 0.08, false);
+  var grainTex = (function () {
+    var d = new Uint8Array(128 * 128 * 4);
+    for (var i = 0; i < 128 * 128; i++) { var v = 90 + Math.random() * 165; d[i * 4] = d[i * 4 + 1] = d[i * 4 + 2] = v; d[i * 4 + 3] = 255; }
+    var t = new THREE.DataTexture(d, 128, 128, THREE.RGBAFormat); t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearMipmapLinearFilter; t.generateMipmaps = true; t.repeat.set(5, 5); t.needsUpdate = true; return t;
+  })();
+
+  var topPos = new Float32Array(NN * 3), topCol = new Float32Array(NN * 3), topNor = new Float32Array(NN * 3), topUv = new Float32Array(NN * 2);
+  for (var ti = 0; ti < NN; ti++) {
+    var tx = ti % N, tz = (ti / N) | 0, px = -R + (tx + 0.5) * CELL, pz = -R + (tz + 0.5) * CELL;
+    topPos[ti * 3] = px; topPos[ti * 3 + 1] = BASE; topPos[ti * 3 + 2] = pz;
+    topUv[ti * 2] = (px + R) / (2 * R); topUv[ti * 2 + 1] = (pz + R) / (2 * R);
+  }
+  var topIdx = new Uint16Array((N - 1) * (N - 1) * 6);
+  var topGeo = new THREE.BufferGeometry();
+  var aPos = new THREE.BufferAttribute(topPos, 3), aCol = new THREE.BufferAttribute(topCol, 3), aNor = new THREE.BufferAttribute(topNor, 3);
+  aPos.setUsage(THREE.DynamicDrawUsage); aCol.setUsage(THREE.DynamicDrawUsage); aNor.setUsage(THREE.DynamicDrawUsage);
+  var aIdx = new THREE.BufferAttribute(topIdx, 1); aIdx.setUsage(THREE.DynamicDrawUsage);
+  topGeo.setAttribute('position', aPos); topGeo.setAttribute('color', aCol); topGeo.setAttribute('normal', aNor);
+  topGeo.setAttribute('uv', new THREE.BufferAttribute(topUv, 2)); topGeo.setIndex(aIdx); topGeo.setDrawRange(0, 0);
+  var topMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9 });
+  var topMesh = new THREE.Mesh(topGeo, topMat); topMesh.frustumCulled = false; jar.add(topMesh);
+
+  var WW = 384, wallData = new Uint8Array(WW * LEV * 4), wallCell = new Int16Array(WW);
+  var wallTex = new THREE.DataTexture(wallData, WW, LEV, THREE.RGBAFormat);
+  wallTex.wrapS = THREE.RepeatWrapping; wallTex.wrapT = THREE.ClampToEdgeWrapping;
+  wallTex.magFilter = THREE.LinearFilter; wallTex.minFilter = THREE.LinearFilter; wallTex.generateMipmaps = false; wallTex.encoding = THREE.sRGBEncoding;
+  (function () {
+    for (var u = 0; u < WW; u++) {
+      var th = (u + 0.5) / WW * Math.PI * 2, rs = R - 0.55 * CELL, c = -1;
+      for (var k = 0; k < 8 && c < 0; k++) {
+        var x = rs * Math.sin(th), z = rs * Math.cos(th), ix = Math.floor((x + R) / CELL), iz = Math.floor((z + R) / CELL), cc = iz * N + ix;
+        if (cc >= 0 && cc < NN && valid[cc]) c = cc; else rs *= 0.96;
+      }
+      wallCell[u] = c < 0 ? validList[0] : c;
+    }
+  })();
+  var wallMat = new THREE.MeshStandardMaterial({ map: wallTex, alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.9 });
+  var wallMesh = new THREE.Mesh(new THREE.CylinderGeometry(R * 0.995, R * 0.995, LEV * LV, 192, 1, true), wallMat);
+  wallMesh.position.y = BASE + LEV * LV / 2; jar.add(wallMesh);
+  var wnoise = new Float32Array(4096); for (var wi = 0; wi < 4096; wi++) wnoise[wi] = 0.94 + Math.random() * 0.12;
+
+  function applyMaterial(kind) {
+    [topMat, wallMat].forEach(function (m) {
+      var isTop = m === topMat;
+      if (kind === 'glitter') { m.metalness = 1; m.metalnessMap = isTop ? spkTop : spkWall; m.roughness = 0.38; m.envMapIntensity = 1.7; if (isTop) { m.bumpMap = grainTex; m.bumpScale = 0.6; } }
+      else if (kind === 'matte') { m.metalness = 0; m.metalnessMap = null; m.roughness = 1; m.envMapIntensity = 0.35; if (isTop) { m.bumpMap = grainTex; m.bumpScale = 1.4; } }
+      else { m.metalness = 0.55; m.metalnessMap = null; m.roughness = 0.42; m.envMapIntensity = 1.4; if (isTop) { m.bumpMap = grainTex; m.bumpScale = 0.8; } }
+      m.needsUpdate = true;
+    });
+  }
+  applyMaterial('glitter');
+
+  // 噴嘴
+  var nozzle = new THREE.Group();
+  (function () {
+    var m = new THREE.MeshStandardMaterial({ color: 0xc9a574, metalness: 0.9, roughness: 0.35 });
+    var cone = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.04, 0.34, 40, 1, true), new THREE.MeshStandardMaterial({ color: 0xc9a574, metalness: 0.9, roughness: 0.35, side: THREE.DoubleSide }));
+    var ring = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.018, 12, 40), m); ring.rotation.x = Math.PI / 2; ring.position.y = 0.17;
+    var tip = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.03, 0.08, 20), m); tip.position.y = -0.2;
+    nozzle.add(cone, ring, tip);
+  })();
+  nozzle.position.set(0, NOZY + 0.2, 0); scene.add(nozzle);
+
+  // 落沙粒子
+  var M = 2600, gPos = new Float32Array(M * 3), gCol = new Float32Array(M * 3), gVel = new Float32Array(M * 3), g565 = new Uint16Array(M), gAlive = new Uint8Array(M);
+  for (var gz = 0; gz < M; gz++) gPos[gz * 3 + 1] = -100;
+  var gGeo = new THREE.BufferGeometry(), gaP = new THREE.BufferAttribute(gPos, 3), gaC = new THREE.BufferAttribute(gCol, 3);
+  gaP.setUsage(THREE.DynamicDrawUsage); gaC.setUsage(THREE.DynamicDrawUsage);
+  gGeo.setAttribute('position', gaP); gGeo.setAttribute('color', gaC);
+  var dot = (function () {
+    var c = document.createElement('canvas'); c.width = c.height = 32; var g = c.getContext('2d');
+    g.fillStyle = '#fff'; g.beginPath(); g.arc(16, 16, 14, 0, Math.PI * 2); g.fill(); return new THREE.CanvasTexture(c);
+  })();
+  var grains = new THREE.Points(gGeo, new THREE.PointsMaterial({ size: 0.045, map: dot, alphaTest: 0.5, vertexColors: true, sizeAttenuation: true }));
+  grains.frustumCulled = false; scene.add(grains);
+  var gNext = 0;
+
+  // 漂浮微光
+  var MOTES = 170, mPos = new Float32Array(MOTES * 3), mSeed = new Float32Array(MOTES);
+  for (var mi = 0; mi < MOTES; mi++) {
+    var ma = Math.random() * Math.PI * 2, mr = 0.6 + Math.random() * 2.4;
+    mPos[mi * 3] = Math.cos(ma) * mr; mPos[mi * 3 + 1] = Math.random() * 4.2; mPos[mi * 3 + 2] = Math.sin(ma) * mr; mSeed[mi] = Math.random() * 6.28;
+  }
+  var mGeo = new THREE.BufferGeometry(), maP = new THREE.BufferAttribute(mPos, 3); maP.setUsage(THREE.DynamicDrawUsage); mGeo.setAttribute('position', maP);
+  var motesMat = new THREE.PointsMaterial({ size: 0.04, map: dot, color: 0xffe0b0, transparent: true, opacity: 0.25, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true });
+  var motes = new THREE.Points(mGeo, motesMat); motes.frustumCulled = false; scene.add(motes);
+
+  /* ── 沙子物理 ── */
+  var seed = 1234567;
+  function rnd() { seed ^= seed << 13; seed ^= seed >>> 17; seed ^= seed << 5; return ((seed >>> 0) % 100000) / 100000; }
+  var dirty = true, wallDirty = true, deposited = 0, failCount = 0, full = false;
+
+  function deposit(c, col) {
+    if (H[c] >= LEV) return false;
+    V[c * LEV + H[c]] = col; H[c]++; return true;
+  }
+  function rollTo(c) {
+    for (var s = 0; s < 14; s++) {
+      var h = H[c], best = -1, bh = 1e9, d0 = (rnd() * 4) | 0;
+      for (var k = 0; k < 4; k++) {
+        var j = nbr[c * 4 + ((d0 + k) & 3)]; if (j < 0) continue;
+        var hj = H[j]; if (hj <= h - 3 && hj < bh) { bh = hj; best = j; }
+      }
+      if (best < 0) break; c = best;
+    }
+    return c;
+  }
+  function relax(passes, bias, gx) {
+    var moved = 0, cnt = validList.length;
+    for (var p = 0; p < passes; p++) {
+      var stride = 1031 + p * 2, off = (rnd() * cnt) | 0;
+      for (var k = 0; k < cnt; k++) {
+        var i = validList[(k * stride + off) % cnt], h = H[i]; if (h === 0 || lock[i]) continue;
+        var d0 = (rnd() * 4) | 0;
+        for (var q = 0; q < 4; q++) {
+          var d = (d0 + q) & 3, j = nbr[i * 4 + d]; if (j < 0) continue;
+          var eff = h - H[j] + bias * DX[d] * gx;
+          if (eff > 2 && H[j] < LEV) { V[j * LEV + H[j]] = V[i * LEV + h - 1]; H[j]++; H[i]--; moved++; break; }
+        }
+      }
+    }
+    return moved;
+  }
+
+  function updateTop() {
+    var cnt = 0, i, idx = topIdx;
+    for (i = 0; i < NN; i++) {
+      if (!valid[i]) continue;
+      var h = H[i], ix = i % N, iz = (i / N) | 0;
+      topPos[i * 3 + 1] = BASE + h * LV;
+      var hl = ix > 0 && valid[i - 1] ? H[i - 1] : h, hr = ix < N - 1 && valid[i + 1] ? H[i + 1] : h;
+      var hu = iz > 0 && valid[i - N] ? H[i - N] : h, hd = iz < N - 1 && valid[i + N] ? H[i + N] : h;
+      var nx = (hl - hr) * LV, ny = 2 * CELL, nz = (hu - hd) * LV, inv = 1 / Math.sqrt(nx * nx + ny * ny + nz * nz);
+      topNor[i * 3] = nx * inv; topNor[i * 3 + 1] = ny * inv; topNor[i * 3 + 2] = nz * inv;
+      if (h > 0) {
+        var c = V[i * LEV + h - 1];
+        var occ = Math.max(0, Math.min(1, ((hl + hr + hu + hd) / 4 - h) / 2.2)) * 0.45;
+        var edge = Math.max(0, Math.min(1, (rad[i] - (R - 2.2 * CELL)) / (2.2 * CELL))) * 0.2;
+        var sh = (1 - occ - edge) * gnoise[i] * (1 - 0.08 * lock[i]);
+        topCol[i * 3] = L5[(c >> 11) & 31] * sh; topCol[i * 3 + 1] = L6[(c >> 5) & 63] * sh; topCol[i * 3 + 2] = L5[c & 31] * sh;
+      }
+    }
+    for (iz = 0; iz < N - 1; iz++) for (ix = 0; ix < N - 1; ix++) {
+      var a = iz * N + ix, b = a + 1, cc = a + N, dd = cc + 1;
+      if (valid[a] && valid[b] && valid[cc] && valid[dd] && H[a] > 0 && H[b] > 0 && H[cc] > 0 && H[dd] > 0) {
+        idx[cnt++] = a; idx[cnt++] = cc; idx[cnt++] = b; idx[cnt++] = b; idx[cnt++] = cc; idx[cnt++] = dd;
+      }
+    }
+    topGeo.setDrawRange(0, cnt);
+    aPos.needsUpdate = true; aCol.needsUpdate = true; aNor.needsUpdate = true; aIdx.needsUpdate = true;
+  }
+  function updateWall() {
+    for (var u = 0; u < WW; u++) {
+      var c = wallCell[u], h = H[c], base = c * LEV, lr = 40, lg = 36, lb = 32;
+      for (var v = 0; v < LEV; v++) {
+        var o = (v * WW + u) * 4;
+        if (v < h) {
+          var col = V[base + v], n = wnoise[(u * 31 + v * 17) & 4095];
+          lr = Math.min(255, ((col >> 11) & 31) * 8.226 * n); lg = Math.min(255, ((col >> 5) & 63) * 4.048 * n); lb = Math.min(255, (col & 31) * 8.226 * n);
+          wallData[o] = lr; wallData[o + 1] = lg; wallData[o + 2] = lb; wallData[o + 3] = 255;
+        } else { wallData[o] = lr; wallData[o + 1] = lg; wallData[o + 2] = lb; wallData[o + 3] = 0; }
+      }
+    }
+    wallTex.needsUpdate = true;
+  }
+
+  /* ── 封蓋、完成度與作品存取 ── */
+  var sealed = false, complete = false, pct = 0, lastPct = -1, pAcc = 0, hovering = false;
+  var lid = new THREE.Group(), lidT = 0, lidMode = 0, LID_Y = 2.76, LID_UP = 4.4, CAP = validList.length * LEV * 0.92;
+  (function () {
+    var cd = new Uint8Array(64 * 64 * 4);
+    for (var i = 0; i < 64 * 64; i++) { var n = 0.8 + Math.random() * 0.4; cd[i * 4] = Math.min(255, 196 * n); cd[i * 4 + 1] = Math.min(255, 148 * n); cd[i * 4 + 2] = Math.min(255, 98 * n); cd[i * 4 + 3] = 255; }
+    var ct = new THREE.DataTexture(cd, 64, 64, THREE.RGBAFormat); ct.wrapS = ct.wrapT = THREE.RepeatWrapping; ct.repeat.set(6, 1); ct.encoding = THREE.sRGBEncoding; ct.needsUpdate = true;
+    var cork = new THREE.MeshStandardMaterial({ map: ct, roughness: 0.92, metalness: 0 });
+    var gold = new THREE.MeshStandardMaterial({ color: 0xc9a574, metalness: 0.95, roughness: 0.3 });
+    var disc = new THREE.Mesh(new THREE.CylinderGeometry(1.74, 1.74, 0.16, 96), cork); disc.position.y = 0.08;
+    var plug = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 0.1, 64), cork); plug.position.y = -0.05;
+    var band = new THREE.Mesh(new THREE.TorusGeometry(1.74, 0.028, 12, 96), gold); band.rotation.x = Math.PI / 2; band.position.y = 0.12;
+    var stem = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.14, 0.14, 32), gold); stem.position.y = 0.23;
+    var knob = new THREE.Mesh(new THREE.SphereGeometry(0.2, 32, 20), gold); knob.position.y = 0.38;
+    lid.add(disc, plug, band, stem, knob); lid.visible = false; lid.position.y = LID_UP; jar.add(lid);
+  })();
+  var holes = [], FULL_H = LEV - 2;
+  // 完成度：每格沙柱都到達罐口高度才是 100%；只要還有空洞，最多顯示 99%
+  function computePct() {
+    var s = 0; holes.length = 0;
+    for (var k = 0; k < validList.length; k++) {
+      var c = validList[k], hh = H[c];
+      if (hh >= FULL_H) s += 1; else { s += hh / FULL_H; holes.push(c); }
+    }
+    return holes.length === 0 ? 1 : Math.min(0.99, s / validList.length);
+  }
+  // 已滿的位置繼續倒沙時，沙會流到附近最低處；附近都滿了就補進剩餘的空洞
+  function findLow(c) {
+    var cx = c % N, cz = (c / N) | 0, best = -1, bh = H[c] - 2;
+    for (var dz = -6; dz <= 6; dz++) for (var dx = -6; dx <= 6; dx++) {
+      var x = cx + dx, z = cz + dz; if (x < 0 || z < 0 || x >= N || z >= N) continue;
+      var j = z * N + x; if (valid[j] && H[j] < bh) { bh = H[j]; best = j; }
+    }
+    if (best < 0 && holes.length) { var j2 = holes[(rnd() * holes.length) | 0]; if (H[j2] < LEV) best = j2; }
+    return best;
+  }
+  function progressUpdate() {
+    if (++pAcc % 6 !== 0) return;
+    pct = computePct(); var done = pct >= 1;
+    if (Math.abs(pct - lastPct) >= 0.002 || done !== complete) { lastPct = pct; cb.onProgress(pct, done); }
+    if (done && !complete) cb.onComplete();
+    complete = done;
+  }
+  function lidUpdate(dt) {
+    if (!lidMode) return;
+    lidT += dt;
+    if (lidMode === 1) {
+      var f = Math.min(1, lidT / 1.1), e = 1 - Math.pow(1 - f, 3);
+      lid.position.y = LID_UP + (LID_Y - LID_UP) * e; lid.rotation.y = (1 - e) * 2.2;
+      if (f >= 1) { lidMode = 0; lid.position.y = LID_Y; lid.rotation.y = 0; cb.onSealed(); }
+    } else {
+      var f2 = Math.min(1, lidT / 0.7), e2 = f2 * f2;
+      lid.position.y = LID_Y + (LID_UP - LID_Y) * e2; lid.rotation.y = e2 * 1.5;
+      if (f2 >= 1) { lidMode = 0; lid.visible = false; }
+    }
+  }
+  function hB(ix, iz) { if (ix < 0 || iz < 0 || ix >= N || iz >= N) return 0; var c = iz * N + ix; return valid[c] ? H[c] : 0; }
+  function surfYB(x, z) {
+    var gx = (x + R) / CELL - 0.5, gz = (z + R) / CELL - 0.5, ix = Math.floor(gx), iz = Math.floor(gz), fx = gx - ix, fz = gz - iz;
+    var h0 = hB(ix, iz) * (1 - fx) + hB(ix + 1, iz) * fx, h1 = hB(ix, iz + 1) * (1 - fx) + hB(ix + 1, iz + 1) * fx;
+    return BASE + (h0 * (1 - fz) + h1 * fz) * LV;
+  }
+  function ringUpdate(cx, cz, r) {
+    var half = 0.045, arr = ringPos.array, SEG = 72, lim = R - 0.01;
+    for (var s = 0; s <= SEG; s++) {
+      var a = s / SEG * Math.PI * 2, ca = Math.cos(a), sa = Math.sin(a);
+      for (var k = 0; k < 3; k++) {
+        var rr = r + (k - 1) * half, x = cx + ca * rr, z = cz + sa * rr, d = Math.hypot(x, z);
+        if (d > lim) { x *= lim / d; z *= lim / d; }
+        var o = (s * 3 + k) * 3; arr[o] = x; arr[o + 1] = surfYB(x, z) + 0.022; arr[o + 2] = z;
+      }
+    }
+    ringPos.needsUpdate = true;
+  }
+  function capture(n, w, hh, q) {
+    var prevPR = renderer.getPixelRatio(), cw = canvas.clientWidth, ch = canvas.clientHeight;
+    var nv = nozzle.visible, mv = motes.visible, sv = stylus.visible, rv = ring.visible, out = [];
+    nozzle.visible = false; motes.visible = false; stylus.visible = false; ring.visible = false;
+    renderer.setPixelRatio(1); renderer.setSize(w, hh, false); camera.aspect = w / hh; camera.updateProjectionMatrix();
+    var d = Math.max(7.6, 3.9 / (0.65 * camera.aspect)) * 1.1, pp = 1.2;
+    for (var i = 0; i < n; i++) {
+      var a = 0.55 + i / n * Math.PI * 2;
+      camera.position.set(d * Math.sin(pp) * Math.sin(a), TY + d * Math.cos(pp), d * Math.sin(pp) * Math.cos(a)); camera.lookAt(0, TY, 0);
+      renderer.render(scene, camera); out.push(renderer.domElement.toDataURL('image/jpeg', q));
+    }
+    nozzle.visible = nv; motes.visible = mv; stylus.visible = sv; ring.visible = rv;
+    renderer.setPixelRatio(prevPR); renderer.setSize(cw, ch, false); camera.aspect = cw / ch; camera.updateProjectionMatrix(); camUpdate(); renderer.render(scene, camera);
+    return out;
+  }
+  function exportState() {
+    var Vc = V.slice();
+    for (var c = 0; c < NN; c++) { var hh = H[c]; if (hh < LEV) Vc.fill(0, c * LEV + hh, (c + 1) * LEV); }
+    var out = new Uint8Array(NN * 3 + NN * LEV * 2);
+    out.set(new Uint8Array(H.buffer, H.byteOffset, NN * 2), 0); out.set(lock, NN * 2); out.set(new Uint8Array(Vc.buffer), NN * 3);
+    return { buf: out.buffer, sealed: sealed, pct: computePct() };
+  }
+  function importState(buf, seal) {
+    if (!buf || buf.byteLength !== NN * 3 + NN * LEV * 2) return false;
+    H.set(new Uint16Array(buf.slice(0, NN * 2))); lock.set(new Uint8Array(buf.slice(NN * 2, NN * 3))); V.set(new Uint16Array(buf.slice(NN * 3)));
+    killGrains(); undoStack.length = 0; cb.onUndo(0); tilt.on = false; tilt.alpha = 0; full = false; failCount = 0; pouring = false; tDown = false;
+    sealed = !!seal; lidMode = 0; lid.visible = sealed; lid.position.y = LID_Y; lid.rotation.y = 0;
+    dirty = true; wallDirty = true;
+    var p = computePct(); complete = p >= 1; lastPct = p; pct = p; cb.onProgress(p, complete);
+    return true;
+  }
+
+  /* ── 塑形針與壓棒 ── */
+  var toolSize = 0.4, toolDepth = 0.5, tDown = false, tgt2 = { x: 0, z: 0 }, tp = { x: 0, z: 0 }, lastS = { x: 0, z: 0 };
+  var pathLen = 0, carry = 0, strokeChanged = false, refH = new Int16Array(NN), plateL = 0, plateT = 0, sTipY = 1.2;
+  var stylus = new THREE.Group(), plate, ring, ringPos;
+  (function () {
+    var m = new THREE.MeshStandardMaterial({ color: 0xdedede, metalness: 1, roughness: 0.22 });
+    var rod = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.016, 3.6, 14), m); rod.position.y = 1.9;
+    var tip = new THREE.Mesh(new THREE.ConeGeometry(0.016, 0.1, 14), m); tip.rotation.x = Math.PI; tip.position.y = 0.05;
+    plate = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 0.05, 56), new THREE.MeshStandardMaterial({ color: 0xd2d2d2, metalness: 1, roughness: 0.3 }));
+    plate.position.y = 0.025; plate.visible = false;
+    stylus.add(rod, tip, plate); stylus.visible = false; scene.add(stylus);
+    var SEG = 72, rp = new Float32Array((SEG + 1) * 9), rcol = new Float32Array((SEG + 1) * 9), ri = [];
+    for (var s = 0; s <= SEG; s++) {
+      var b = s * 3;
+      rcol[(b + 1) * 3] = 1.0; rcol[(b + 1) * 3 + 1] = 0.86; rcol[(b + 1) * 3 + 2] = 0.62;
+      if (s < SEG) ri.push(b, b + 1, b + 3, b + 3, b + 1, b + 4, b + 1, b + 2, b + 4, b + 4, b + 2, b + 5);
+    }
+    var rg = new THREE.BufferGeometry(); ringPos = new THREE.BufferAttribute(rp, 3); ringPos.setUsage(THREE.DynamicDrawUsage);
+    rg.setAttribute('position', ringPos); rg.setAttribute('color', new THREE.BufferAttribute(rcol, 3)); rg.setIndex(ri);
+    ring = new THREE.Mesh(rg, new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false }));
+    ring.frustumCulled = false; ring.renderOrder = 6; ring.visible = false; scene.add(ring);
+  })();
+  function isTool() { return mode === 'pull' || mode === 'wave' || mode === 'press' || mode === 'carve'; }
+  function toolR() { return 1.3 + toolSize * 5.2; }
+  function surfY(x, z) {
+    var ix = Math.floor((x + R) / CELL), iz = Math.floor((z + R) / CELL);
+    if (ix < 0 || iz < 0 || ix >= N || iz >= N) return BASE;
+    var c = iz * N + ix; return BASE + (valid[c] ? H[c] : 0) * LV;
+  }
+  function pickAim(e) {
+    var rc = canvas.getBoundingClientRect();
+    ndc.set(((e.clientX - rc.left) / rc.width) * 2 - 1, -((e.clientY - rc.top) / rc.height) * 2 + 1);
+    ray.setFromCamera(ndc, camera);
+    var o = ray.ray.origin, d = ray.ray.direction, cd = Math.hypot(o.x, o.y - TY, o.z), t0 = Math.max(0, cd - 3.7), t1 = cd + 3.7, lim = (R - 0.02) * (R - 0.02);
+    for (var t = t0; t <= t1; t += 0.03) {
+      var px = o.x + d.x * t, py = o.y + d.y * t, pz = o.z + d.z * t;
+      if (py > 2.9 || py < BASE - 0.03) continue;
+      if (px * px + pz * pz < lim && py <= surfY(px, pz) + 0.004) { tgt2.x = px; tgt2.z = pz; lastPtr = performance.now(); return true; }
+    }
+    return false;
+  }
+  function compress(c, nh) {
+    var oh = H[c]; if (nh >= oh || nh < 1) return;
+    var b = c * LEV, k = oh / nh;
+    for (var j = 0; j < nh; j++) V[b + j] = V[b + Math.floor((j + 0.5) * k)];
+    H[c] = nh;
+  }
+  function pullStamp(x, z, wave) {
+    var gx = (x + R) / CELL - 0.5, gz = (z + R) / CELL - 0.5, rN = Math.max(1.3, toolR() * 0.55), rS = rN + 2.4, ch = 0;
+    var D = Math.round(14 + toolDepth * 86), m = wave ? 0.25 + 0.75 * (0.5 + 0.5 * Math.sin(pathLen * 0.62)) : 1;
+    for (var iz = Math.max(0, Math.floor(gz - rS)); iz <= Math.min(N - 1, Math.ceil(gz + rS)); iz++)
+      for (var ix = Math.max(0, Math.floor(gx - rS)); ix <= Math.min(N - 1, Math.ceil(gx + rS)); ix++) {
+        var c = iz * N + ix; if (!valid[c]) continue;
+        var d = Math.hypot(ix - gx, iz - gz), hh = H[c];
+        if (d <= rN) {
+          if (hh < 6) continue;
+          var Dc = Math.min(D, hh), w = 1 - (d / rN) * (d / rN), s = (wave ? 0.2 : 0.11) * w * m;
+          if (s < 0.01) continue;
+          var base = c * LEV + hh - Dc;
+          for (var j = Dc - 1; j > 0; j--) V[base + j] = V[base + Math.floor(j * (1 - s))];
+          ch++;
+          if (w > 0.45 && rnd() < 0.3 && H[c] > 3 && !lock[c]) { H[c]--; carry++; }
+        } else if (d <= rS && carry > 0 && hh > 0 && hh < LEV && rnd() < 0.5 * (1 - (d - rN) / (rS - rN))) {
+          V[c * LEV + hh] = V[c * LEV + hh - 1]; H[c]++; carry--; ch++;
+        }
+      }
+    if (ch) { dirty = true; wallDirty = true; strokeChanged = true; }
+  }
+  function pressStep(dt) {
+    var rP = toolR(), rF = rP + 1.6, gx = (tp.x + R) / CELL - 0.5, gz = (tp.z + R) / CELL - 0.5, ch = 0;
+    plateT += dt;
+    var plate0 = Math.max(2, plateL - plateT * 10), lv = Math.min(3, 1 + Math.floor(plateT * 3));
+    for (var iz = Math.max(0, Math.floor(gz - rF)); iz <= Math.min(N - 1, Math.ceil(gz + rF)); iz++)
+      for (var ix = Math.max(0, Math.floor(gx - rF)); ix <= Math.min(N - 1, Math.ceil(gx + rF)); ix++) {
+        var c = iz * N + ix; if (!valid[c]) continue;
+        var d = Math.hypot(ix - gx, iz - gz); if (d > rF) continue;
+        var ref = refH[c]; if (ref < 1) continue;
+        var w = d <= rP ? 1 : 1 - (d - rP) / (rF - rP);
+        var tg = Math.max(Math.floor(ref * 0.7), Math.round(ref - Math.max(0, ref - plate0) * w));
+        if (tg < 1) tg = 1;
+        if (H[c] > tg) { compress(c, tg); ch++; }
+        if (w > 0.6 && H[c] > 0 && lock[c] < lv) { lock[c] = lv; ch++; }
+      }
+    if (ch) { dirty = true; wallDirty = true; strokeChanged = true; }
+  }
+  function carveStamp(x, z) {
+    var gx = (x + R) / CELL - 0.5, gz = (z + R) / CELL - 0.5, rc = Math.max(1.0, toolR() * 0.28), rS = rc + 1.8, ch = 0;
+    var gd = 1.5 + toolDepth * 4.5, amp = gd * (0.4 + 0.6 * (0.5 + 0.5 * Math.sin(pathLen * 1.26))), rg = Math.max(1, Math.round(gd * 0.4));
+    for (var iz = Math.max(0, Math.floor(gz - rS)); iz <= Math.min(N - 1, Math.ceil(gz + rS)); iz++)
+      for (var ix = Math.max(0, Math.floor(gx - rS)); ix <= Math.min(N - 1, Math.ceil(gx + rS)); ix++) {
+        var c = iz * N + ix; if (!valid[c]) continue;
+        var d = Math.hypot(ix - gx, iz - gz); if (d > rS) continue;
+        var ref = refH[c]; if (ref < 2) continue;
+        if (d <= rc) {
+          var tg = ref - Math.round(amp * (1 - d * d / (rc * rc))); if (tg < 1) tg = 1;
+          if (H[c] > tg) { H[c] = tg; ch++; }
+        } else if (H[c] >= ref) {
+          var tr = ref + Math.round(rg * (1 - (d - rc) / (rS - rc)));
+          while (H[c] < tr && H[c] < LEV) { V[c * LEV + H[c]] = V[c * LEV + H[c] - 1]; H[c]++; ch++; }
+        }
+        if (lock[c] < 1) { lock[c] = 1; ch++; }
+      }
+    if (ch) { dirty = true; wallDirty = true; strokeChanged = true; }
+  }
+  function beginTool(e) {
+    if (tilt.on) return;
+    if (sealed) { cb.onBlocked(); return; }
+    pickAim(e); tp.x = tgt2.x; tp.z = tgt2.z; lastS.x = tp.x; lastS.z = tp.z;
+    pushUndo(); refH.set(H); tDown = true; strokeChanged = false; pathLen = 0; carry = 0; plateT = 0;
+    if (mode === 'press') {
+      var rP = toolR(), gx = (tp.x + R) / CELL - 0.5, gz = (tp.z + R) / CELL - 0.5, sum = 0, n = 0;
+      for (var iz = Math.max(0, Math.floor(gz - rP)); iz <= Math.min(N - 1, Math.ceil(gz + rP)); iz++)
+        for (var ix = Math.max(0, Math.floor(gx - rP)); ix <= Math.min(N - 1, Math.ceil(gx + rP)); ix++) {
+          var c = iz * N + ix; if (!valid[c]) continue;
+          if (Math.hypot(ix - gx, iz - gz) <= rP) { sum += H[c]; n++; }
+        }
+      plateL = n ? sum / n : 0;
+    }
+  }
+  function endTool() {
+    if (!tDown) return; tDown = false;
+    if (!strokeChanged) { undoStack.pop(); cb.onUndo(undoStack.length); }
+  }
+  function toolUpdate(dt, now) {
+    var tl = isTool();
+    if (tl) { var k = Math.min(1, dt * 20); tp.x += (tgt2.x - tp.x) * k; tp.z += (tgt2.z - tp.z) * k; }
+    if (tl && tDown && !tilt.on) {
+      if (mode === 'press') pressStep(dt);
+      else {
+        var sp = CELL * 0.9, dx = tp.x - lastS.x, dz = tp.z - lastS.z, dist = Math.hypot(dx, dz), n = 0;
+        while (dist >= sp && n < 14) {
+          lastS.x += dx / dist * sp; lastS.z += dz / dist * sp; pathLen += 0.9;
+          if (mode === 'carve') carveStamp(lastS.x, lastS.z); else pullStamp(lastS.x, lastS.z, mode === 'wave');
+          dx = tp.x - lastS.x; dz = tp.z - lastS.z; dist = Math.hypot(dx, dz); n++;
+        }
+      }
+    }
+    var showT = tl && !sealed && (tDown || hovering || now - lastPtr < 3500);
+    stylus.visible = showT;
+    if (showT) {
+      var sy = surfY(tp.x, tp.z), ty;
+      if (mode === 'press') ty = tDown ? Math.min(sy, BASE + Math.max(2, plateL - plateT * 10) * LV) : sy + 0.2;
+      else if (mode === 'carve') ty = tDown ? sy - 0.02 : sy + 0.14;
+      else ty = tDown ? sy - (14 + toolDepth * 86) * LV * 0.5 : sy + 0.16;
+      sTipY += (ty - sTipY) * Math.min(1, dt * 16);
+      stylus.position.set(tp.x, sTipY, tp.z);
+      plate.visible = mode === 'press'; plate.scale.set(toolR() * CELL, 1, toolR() * CELL);
+    }
+    var ringOn = Math.abs(tilt.alpha) < 0.01 && ((mode === 'pour' && nozzle.visible) || showT);
+    if (ringOn) {
+      var rx, rz, rr;
+      if (mode === 'pour') { rx = npos.x; rz = npos.z; rr = spreadR + 0.03; }
+      else { rx = tp.x; rz = tp.z; rr = (mode === 'press' ? toolR() : mode === 'carve' ? Math.max(1, toolR() * 0.28) : Math.max(1.3, toolR() * 0.55)) * CELL; }
+      ringUpdate(rx, rz, Math.max(0.05, rr));
+    }
+    ring.visible = ringOn;
+  }
+
+  /* ── 撤銷堆疊 ── */
+  var undoStack = [];
+  function pushUndo() {
+    undoStack.push({ H: H.slice(), V: V.slice(), L: lock.slice() }); if (undoStack.length > 14) undoStack.shift(); cb.onUndo(undoStack.length);
+  }
+  function killGrains() { for (var i = 0; i < M; i++) { gAlive[i] = 0; gPos[i * 3 + 1] = -100; } gaP.needsUpdate = true; }
+
+  /* ── 狀態 ── */
+  var mode = 'pour', pouring = false, strokeStart = 0, strokeUndoPushed = false;
+  var cur = { r: 217, g: 185, b: 138 }, gradList = null, gradT = 0;
+  var flow = 0.6, spreadR = 0.065, zen = false;
+  var target = { x: 0, z: 0 }, npos = { x: 0, z: 0 }, nScale = 0, lastPtr = -1e9;
+  var tilt = { on: false, t: 0, dir: 1, alpha: 0 }, tiltRecent = 0;
+  var flowSm = 0, spawnAcc = 0;
+
+  function tweenColor(dt) {
+    if (!gradList || gradList.length < 2) return;
+    gradT += dt * 0.35; var n = gradList.length, f = gradT % n, i = Math.floor(f), t = f - i, a = gradList[i], b = gradList[(i + 1) % n];
+    t = t * t * (3 - 2 * t);
+    cur.r = a.r + (b.r - a.r) * t; cur.g = a.g + (b.g - a.g) * t; cur.b = a.b + (b.b - a.b) * t;
+  }
+  function spawn(count) {
+    for (var s = 0; s < count; s++) {
+      var tries = 0; while (gAlive[gNext] && tries < M) { gNext = (gNext + 1) % M; tries++; }
+      if (tries >= M) return; var i = gNext; gNext = (gNext + 1) % M;
+      var r = spreadR * Math.sqrt(Math.random()), a = Math.random() * Math.PI * 2;
+      var x = npos.x + Math.cos(a) * r, z = npos.z + Math.sin(a) * r, rr = Math.hypot(x, z), lim = R - 0.04;
+      if (rr > lim) { x *= lim / rr; z *= lim / rr; }
+      gPos[i * 3] = x; gPos[i * 3 + 1] = NOZY - 0.15; gPos[i * 3 + 2] = z;
+      gVel[i * 3] = (Math.random() - 0.5) * 0.06; gVel[i * 3 + 1] = -(0.4 + Math.random() * 0.3); gVel[i * 3 + 2] = (Math.random() - 0.5) * 0.06;
+      var j = 0.94 + Math.random() * 0.12, cr = Math.min(255, cur.r * j), cg = Math.min(255, cur.g * j), cbb = Math.min(255, cur.b * j);
+      g565[i] = pack565(cr | 0, cg | 0, cbb | 0);
+      gCol[i * 3] = L5[((cr | 0) >> 3)]; gCol[i * 3 + 1] = L6[((cg | 0) >> 2)]; gCol[i * 3 + 2] = L5[((cbb | 0) >> 3)];
+      gAlive[i] = 1;
+    }
+    gaC.needsUpdate = true;
+  }
+  function stepGrains(dt) {
+    var vox = 0, GV = Math.round(4 + flow * 14), any = false;
+    for (var i = 0; i < M; i++) {
+      if (!gAlive[i]) continue; any = true;
+      var o = i * 3; gVel[o + 1] -= 7.5 * dt;
+      var x = gPos[o] + gVel[o] * dt, y = gPos[o + 1] + gVel[o + 1] * dt, z = gPos[o + 2] + gVel[o + 2] * dt;
+      var rr = Math.hypot(x, z); if (rr > R - 0.02) { x *= (R - 0.02) / rr; z *= (R - 0.02) / rr; }
+      var ix = Math.floor((x + R) / CELL), iz = Math.floor((z + R) / CELL);
+      ix = ix < 0 ? 0 : ix >= N ? N - 1 : ix; iz = iz < 0 ? 0 : iz >= N ? N - 1 : iz;
+      var c = iz * N + ix;
+      if (!valid[c]) { x *= 0.9; z *= 0.9; ix = Math.floor((x + R) / CELL); iz = Math.floor((z + R) / CELL); c = iz * N + ix; }
+      if (y <= BASE + H[c] * LV + 0.004) {
+        var col = g565[i];
+        for (var k = 0; k < GV; k++) {
+          var cc = rollTo(c);
+          if (deposit(cc, col)) { vox++; } else { var alt = findLow(cc); if (alt >= 0 && deposit(alt, col)) vox++; else failCount++; }
+        }
+        gAlive[i] = 0; gPos[o + 1] = -100; dirty = true; wallDirty = true;
+      } else { gPos[o] = x; gPos[o + 1] = y; gPos[o + 2] = z; }
+    }
+    if (any) gaP.needsUpdate = true;
+    return vox;
+  }
+
+  /* ── 相機（軌道控制：旋轉、縮放、慣性） ── */
+  var th = 0.55, ph = 1.22, zoom = 1, vth = 0, vph = 0, dragging = false;
+  var TY = 1.35;
+  function fitDist() {
+    var aspect = canvas.clientWidth / Math.max(1, canvas.clientHeight);
+    return Math.max(7.6, 3.9 / (0.65 * aspect));
+  }
+  function camUpdate() {
+    var d = fitDist() * zoom;
+    camera.position.set(d * Math.sin(ph) * Math.sin(th), TY + d * Math.cos(ph), d * Math.sin(ph) * Math.cos(th));
+    camera.lookAt(0, TY, 0);
+  }
+  function resize() {
+    var w = canvas.clientWidth, h = canvas.clientHeight; if (!w || !h) return;
+    renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+  }
+  var ro = (typeof ResizeObserver !== 'undefined') ? new ResizeObserver(resize) : null;
+  if (ro) ro.observe(canvas); else window.addEventListener('resize', resize);
+  resize();
+
+  /* ── 指標操作 ── */
+  var ptrs = new Map(), dragMode = 'none', pinch = null;
+  var ray = new THREE.Raycaster(), plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -2.6), ndc = new THREE.Vector2(), hit = new THREE.Vector3();
+  function aim(e) {
+    var rc = canvas.getBoundingClientRect();
+    ndc.set(((e.clientX - rc.left) / rc.width) * 2 - 1, -((e.clientY - rc.top) / rc.height) * 2 + 1);
+    ray.setFromCamera(ndc, camera);
+    if (ray.ray.intersectPlane(plane, hit)) {
+      var x = hit.x, z = hit.z, r = Math.hypot(x, z), lim = R - 0.12;
+      if (r > lim) { x *= lim / r; z *= lim / r; }
+      target.x = x; target.z = z;
+    }
+    lastPtr = performance.now();
+  }
+  function beginPour(e) {
+    if (tilt.on) return;
+    if (sealed || complete) { cb.onBlocked(); return; }
+    full = false; failCount = 0; deposited = 0;
+    pushUndo(); strokeUndoPushed = true; pouring = true; aim(e);
+  }
+  function endPour() {
+    if (!pouring) return; pouring = false;
+    setTimeout(function () { if (strokeUndoPushed && deposited === 0) { undoStack.pop(); cb.onUndo(undoStack.length); } strokeUndoPushed = false; }, 700);
+  }
+  function onDown(e) {
+    cb.onGesture();
+    try { canvas.setPointerCapture(e.pointerId); } catch (x) { }
+    ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (ptrs.size === 1) {
+      var rot = mode === 'rotate' || sealed || e.button === 2 || e.button === 1;
+      dragMode = rot ? 'rotate' : (mode === 'pour' ? 'pour' : 'tool'); dragging = rot; vth = vph = 0;
+      if (!rot) { if (mode === 'pour') beginPour(e); else beginTool(e); }
+    } else {
+      endPour(); endTool(); dragMode = 'pinch'; dragging = true;
+      var a = Array.from(ptrs.values()); pinch = { d: Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y), mx: (a[0].x + a[1].x) / 2, my: (a[0].y + a[1].y) / 2 };
+    }
+  }
+  function onMove(e) {
+    var p = ptrs.get(e.pointerId);
+    if (!p) { if (e.pointerType === 'mouse' && !tilt.on) { if (mode === 'pour') aim(e); else if (isTool()) pickAim(e); } return; }
+    var dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
+    if (dragMode === 'rotate') { th -= dx * 0.006; ph = Math.max(0.12, Math.min(1.75, ph - dy * 0.005)); vth = -dx * 0.006; vph = -dy * 0.005; }
+    else if (dragMode === 'pour') { aim(e); }
+    else if (dragMode === 'tool') { pickAim(e); }
+    else if (dragMode === 'pinch' && ptrs.size >= 2 && pinch) {
+      var a = Array.from(ptrs.values()), d = Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y), mx = (a[0].x + a[1].x) / 2, my = (a[0].y + a[1].y) / 2;
+      if (d > 0 && pinch.d > 0) zoom = Math.max(0.55, Math.min(1.6, zoom * pinch.d / d));
+      th -= (mx - pinch.mx) * 0.006; ph = Math.max(0.12, Math.min(1.75, ph - (my - pinch.my) * 0.005));
+      pinch.d = d; pinch.mx = mx; pinch.my = my;
+    }
+  }
+  function onUp(e) {
+    ptrs.delete(e.pointerId);
+    if (ptrs.size === 0) { endPour(); endTool(); dragging = false; dragMode = 'none'; pinch = null; }
+    else if (ptrs.size === 1) { dragMode = 'none'; pinch = null; dragging = false; }
+  }
+  function onWheel(e) { e.preventDefault(); zoom = Math.max(0.55, Math.min(1.6, zoom * Math.exp(e.deltaY * 0.001))); }
+  function onCtx(e) { e.preventDefault(); }
+  canvas.addEventListener('pointerdown', onDown); canvas.addEventListener('pointermove', onMove);
+  canvas.addEventListener('pointerup', onUp); canvas.addEventListener('pointercancel', onUp);
+  canvas.addEventListener('wheel', onWheel, { passive: false }); canvas.addEventListener('contextmenu', onCtx);
+  canvas.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') hovering = true; });
+  canvas.addEventListener('pointerleave', function () { hovering = false; });
+
+  /* ── 主迴圈 ── */
+  var raf = 0, last = performance.now(), t0 = last, frameN = 0, slowAcc = 0, slowN = 0, lastAdapt = last, wallTick = 0;
+  var shaftDir = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0);
+
+  function easeIO(t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
+
+  function tick(now) {
+    raf = requestAnimationFrame(tick);
+    var dt = Math.min(0.05, (now - last) / 1000); last = now; var time = (now - t0) / 1000; frameN++;
+
+    // 相機
+    if (!dragging) {
+      th += vth; ph = Math.max(0.12, Math.min(1.75, ph + vph)); vth *= 0.92; vph *= 0.92;
+      if (zen && ptrs.size === 0) th += 0.11 * dt;
+    }
+    camUpdate();
+
+    // 噴嘴
+    var show = mode === 'pour' && !sealed && (pouring || hovering || (now - lastPtr < 2500));
+    nScale += ((show ? 1 : 0) - nScale) * Math.min(1, dt * 6);
+    npos.x += (target.x - npos.x) * Math.min(1, dt * 14); npos.z += (target.z - npos.z) * Math.min(1, dt * 14);
+    nozzle.position.set(npos.x, NOZY + 0.2 + (pouring ? Math.sin(time * 40) * 0.004 : 0), npos.z);
+    var nsx = 0.7 + Math.min(1.6, spreadR * 3.2), ns1 = Math.max(0.001, nScale); nozzle.scale.set(ns1 * nsx, ns1, ns1 * nsx); nozzle.visible = nScale > 0.02;
+
+    tweenColor(dt); toolUpdate(dt, now); lidUpdate(dt); progressUpdate();
+
+    // 傾斜動畫
+    var bias = 0, gx = 0;
+    if (tilt.on) {
+      tilt.t += dt; var T1 = 1.3, T2 = 1.8, T3 = 1.5, maxA = 0.42, f;
+      if (tilt.t < T1) f = easeIO(tilt.t / T1); else if (tilt.t < T1 + T2) f = 1; else if (tilt.t < T1 + T2 + T3) f = 1 - easeIO((tilt.t - T1 - T2) / T3); else { f = 0; tilt.on = false; tiltRecent = 2.5; }
+      tilt.alpha = tilt.dir * maxA * f;
+    }
+    if (tiltRecent > 0) tiltRecent -= dt;
+    var al = tilt.alpha, aa = Math.abs(al), sg = al >= 0 ? 1 : -1;
+    jar.rotation.z = al; jar.position.set(-sg * 1.62 * (1 - Math.cos(aa)), 1.62 * Math.sin(aa), 0);
+    if (aa > 0.001) { bias = Math.tan(aa) * CELL / LV; gx = -sg; }
+    if (!tilt.on && aa > 0) { tilt.alpha = 0; }
+
+    // 落沙
+    var vox = 0;
+    if (pouring && !tilt.on && !full && !complete && !sealed) {
+      spawnAcc += (220 + flow * 500) * dt; var n = Math.floor(spawnAcc); spawnAcc -= n; spawn(n);
+    }
+    vox = stepGrains(dt); deposited += vox;
+    if (failCount > 60 && !full) { full = true; cb.onFull(pct); }
+    var inst = vox / Math.max(dt, 0.001);
+    flowSm += (inst - flowSm) * Math.min(1, dt * 6);
+    Snd.setFlow(Math.min(1, flowSm / 9000));
+
+    // 沙面鬆弛（休止角與傾斜流動）
+    var passes = tilt.on || tiltRecent > 0 ? 10 : 4;
+    if (relax(passes, bias, gx) > 0) { dirty = true; wallDirty = true; }
+    if (dirty) { updateTop(); dirty = false; }
+    if (wallDirty && (++wallTick % 2 === 0 || !pouring)) { updateWall(); wallDirty = false; }
+
+    // 光影
+    var az = 0.62 + 0.12 * Math.sin(time * 0.13), lx = Math.sin(az) * 7.5, lz = Math.cos(az) * 7.5;
+    sun.position.set(lx, 8, lz); sun.intensity = 2.5 + 0.18 * Math.sin(time * 0.37);
+    shaftDir.set(lx, 8 - TY, lz).normalize();
+    shaft.quaternion.setFromUnitVectors(up, shaftDir);
+    shaft.position.set(0, TY, 0).addScaledVector(shaftDir, 4.2);
+    shaftMat.uniforms.uOp.value += ((zen ? 0.11 : 0.055) - shaftMat.uniforms.uOp.value) * Math.min(1, dt * 1.5);
+    motesMat.opacity += ((zen ? 0.85 : 0.3) - motesMat.opacity) * Math.min(1, dt * 1.5);
+    for (var i = 0; i < MOTES; i++) {
+      mPos[i * 3 + 1] += (0.05 + 0.03 * Math.sin(mSeed[i] + time * 0.3)) * dt;
+      mPos[i * 3] += Math.sin(time * 0.2 + mSeed[i]) * 0.02 * dt; mPos[i * 3 + 2] += Math.cos(time * 0.17 + mSeed[i]) * 0.02 * dt;
+      if (mPos[i * 3 + 1] > 4.3) mPos[i * 3 + 1] = 0;
+    }
+    maP.needsUpdate = true;
+
+    renderer.render(scene, camera);
+
+    // 自動降階，維持流暢
+    slowAcc += dt; slowN++;
+    if (now - lastAdapt > 3000 && slowN > 60) {
+      var avg = slowAcc / slowN; slowAcc = 0; slowN = 0; lastAdapt = now;
+      if (avg > 0.026) { if (useTrans) setGlass(false); else if (pr > 1) { pr = Math.max(1, pr - 0.25); renderer.setPixelRatio(pr); resize(); } }
+    }
+  }
+  raf = requestAnimationFrame(tick);
+  updateTop(); updateWall();
+
+  /* ── 對外 API ── */
+  return {
+    setMode: function (m) { endPour(); endTool(); mode = m; lastPtr = performance.now(); canvas.classList.toggle('rotate', m === 'rotate'); },
+    setToolSize: function (v) { toolSize = v; },
+    setToolDepth: function (v) { toolDepth = v; },
+    seal: function () { if (sealed) return; endPour(); endTool(); sealed = true; lid.visible = true; lid.position.y = LID_UP; lidMode = 1; lidT = 0; },
+    unseal: function () { if (!sealed) return; sealed = false; lid.visible = true; lidMode = 2; lidT = 0; },
+    capture: capture, exportState: exportState, importState: importState, getPct: computePct,
+    setColor: function (hex) { gradList = null; cur = hexToRgb(hex); },
+    setGradient: function (list) { gradList = list.map(hexToRgb); gradT = 0; },
+    setMaterial: applyMaterial,
+    setFlow: function (v) { flow = v; },
+    setSpread: function (v) { spreadR = 0.03 * Math.pow(1.4 / 0.03, v); },
+    setZen: function (b) { zen = b; },
+    undo: function () {
+      if (sealed) return; var s = undoStack.pop(); if (!s) return; H.set(s.H); V.set(s.V); lock.set(s.L); killGrains(); full = false; failCount = 0;
+      dirty = true; wallDirty = true; cb.onUndo(undoStack.length);
+    },
+    clear: function () {
+      var any = false; for (var i = 0; i < NN; i++) if (H[i]) { any = true; break; }
+      if (!any || sealed) return; pushUndo(); H.fill(0); lock.fill(0); killGrains(); full = false; failCount = 0; dirty = true; wallDirty = true;
+    },
+    tilt: function () {
+      if (tilt.on || sealed) return; endPour(); endTool(); pushUndo(); tilt.on = true; tilt.t = 0; tilt.dir = -tilt.dir || 1; if (!tilt.dir) tilt.dir = 1;
+    },
+    snapshot: function () {
+      var w = canvas.clientWidth, hh = canvas.clientHeight, sc = Math.min(2.5, 2200 / Math.max(w, hh)), prev = renderer.getPixelRatio();
+      var nv = nozzle.visible, mv = motes.visible, sv = stylus.visible, rv = ring.visible; nozzle.visible = false; motes.visible = false; stylus.visible = false; ring.visible = false;
+      renderer.setPixelRatio(1); renderer.setSize(Math.round(w * sc), Math.round(hh * sc), false); renderer.render(scene, camera);
+      var out = document.createElement('canvas'); out.width = renderer.domElement.width; out.height = renderer.domElement.height;
+      out.getContext('2d').drawImage(renderer.domElement, 0, 0);
+      renderer.setPixelRatio(prev); renderer.setSize(w, hh, false); nozzle.visible = nv; motes.visible = mv; stylus.visible = sv; ring.visible = rv; renderer.render(scene, camera);
+      var url = out.toDataURL('image/png');
+      return new Promise(function (res) { out.toBlob(function (b) { res({ url: url, blob: b, w: out.width, h: out.height }); }, 'image/png'); });
+    },
+    dispose: function () {
+      cancelAnimationFrame(raf); if (ro) ro.disconnect();
+      canvas.removeEventListener('pointerdown', onDown); canvas.removeEventListener('pointermove', onMove);
+      canvas.removeEventListener('pointerup', onUp); canvas.removeEventListener('pointercancel', onUp);
+      canvas.removeEventListener('wheel', onWheel); canvas.removeEventListener('contextmenu', onCtx);
+      renderer.dispose();
+    }
+  };
+}
+
+/* ───────────────────────── 介面（React） ───────────────────────── */
+var h = React.createElement, useState = React.useState, useEffect = React.useEffect, useRef = React.useRef, useCallback = React.useCallback;
+
+var ICON = {
+  undo: '<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/>',
+  trash: '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/>',
+  camera: '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>',
+  eye: '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
+  eyeoff: '<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/>',
+  vol: '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>',
+  mute: '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="22" x2="16" y1="9" y2="15"/><line x1="16" x2="22" y1="9" y2="15"/>',
+  sparkles: '<path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/>',
+  rotate: '<path d="M16.466 7.5C15.643 4.237 13.952 2 12 2 9.239 2 7 6.477 7 12s2.239 10 5 10c.342 0 .677-.069 1-.2"/><path d="m15.194 13.707 3.814 1.86-1.86 3.814"/><path d="M19 15.57c-1.804.885-4.274 1.43-7 1.43-5.523 0-10-2.239-10-5s4.477-5 10-5c4.838 0 8.873 1.718 9.8 4"/>',
+  drops: '<path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"/><path d="M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"/>',
+  tilt: '<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>',
+  x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
+  pull: '<path d="M12 21V4"/><path d="m6 10 6-6 6 6"/>',
+  wave: '<path d="M2 9c2.5-3.5 5-3.5 7.5 0S14.5 12.5 17 9s3-2.5 5 0"/><path d="M2 16c2.5-3.5 5-3.5 7.5 0S14.5 19.5 17 16s3-2.5 5 0"/>',
+  press: '<path d="M12 3v13"/><path d="m6 11 6 6 6-6"/><path d="M5 21h14"/>',
+  carve: '<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>',
+  gallery: '<rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/>',
+  lid: '<rect width="16" height="4" x="4" y="5" rx="1"/><path d="M6 9v9a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V9"/><path d="M10 13h4"/>'
+};
+function Icon(p) {
+  return h('svg', { width: p.size || 20, height: p.size || 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.6, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true, dangerouslySetInnerHTML: { __html: ICON[p.n] } });
+}
+
+var PAL = [
+  { name: '大地', colors: [['赤陶', '#c4694a'], ['駝沙', '#d9b98a'], ['焦糖', '#a9693a'], ['苔綠', '#6f7a4c'], ['岩灰', '#8a8174'], ['栗木', '#5b3d2e']] },
+  { name: '莫蘭迪', colors: [['灰粉', '#d1b3ad'], ['霧藍', '#8fa3ad'], ['鼠尾草', '#a3ad97'], ['藕紫', '#a99aa8'], ['燕麥', '#d6cbb8'], ['灰褐', '#9a8c82']] },
+  { name: '日落', colors: [['緋紅', '#e0533d'], ['橘焰', '#f08a3c'], ['金暉', '#f5c05a'], ['玫瑰霞', '#d9708f'], ['暮紫', '#7a4f8f']] },
+  { name: '深海', colors: [['深淵', '#0e2a47'], ['海藍', '#1b5c8c'], ['青碧', '#2a9aa0'], ['淺灘', '#7fd0c7'], ['泡沫', '#cfeee8']] },
+  { name: '馬卡龍', colors: [['櫻粉', '#f6c1d0'], ['薄荷', '#bfe6d2'], ['奶油黃', '#fbe8a6'], ['天藍', '#b7d8f2'], ['薰衣草', '#d3c3ee']] }
+];
+
+var TOOLS = [['pour', 'drops', '倒沙'], ['pull', 'pull', '挑起'], ['wave', 'wave', '波浪'], ['press', 'press', '壓實'], ['carve', 'carve', '紋理'], ['rotate', 'rotate', '旋轉']];
+var HINTS = {
+  pour: '移動漏斗到想要的位置，按住倒沙 · 右鍵或雙指旋轉視角',
+  pull: '按住拖曳，細針插入沙層，把下層的顏色挑上來',
+  wave: '按住拖曳，針的挑起量隨距離起伏，勾出波浪',
+  press: '按住壓實，沙會變密並鎖定，傾斜時不再流動',
+  carve: '輕輕劃過沙面，留下漣漪般的紋路',
+  rotate: '拖曳旋轉 · 滾輪或雙指縮放'
+};
+
+function loadSaved() { try { var s = JSON.parse(localStorage.getItem('sandart.saved') || '[]'); return Array.isArray(s) ? s.filter(normHex) : []; } catch (e) { return []; } }
+function storeSaved(a) { try { localStorage.setItem('sandart.saved', JSON.stringify(a)); } catch (e) { } }
+
+function Toggle(p) {
+  return h('button', { className: 'togl', type: 'button', 'aria-pressed': p.on, onClick: p.onClick }, h('span', null, p.label), h('span', { className: 'pill' }));
+}
+function Slider(p) {
+  return h('div', { style: { marginTop: 8 } },
+    h('div', { className: 'lbl' }, h('span', null, p.label), h('b', null, p.text)),
+    h('input', { id: p.id, type: 'range', min: 0, max: 1, step: 0.01, value: p.value, onChange: function (e) { p.onChange(parseFloat(e.target.value)); }, 'aria-label': p.label }));
+}
+
+var MAXW = 30;
+function pad2(n) { return (n < 10 ? '0' : '') + n; }
+function fmtDate(ts) { var d = new Date(ts); return d.getFullYear() + '/' + pad2(d.getMonth() + 1) + '/' + pad2(d.getDate()) + ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes()); }
+function defaultName(ts) { return '沙畫 ' + fmtDate(ts || Date.now()); }
+
+var DB = (function () {
+  var dbp = null, mem = { meta: {}, blob: {} };
+  function open() {
+    if (dbp) return dbp;
+    dbp = new Promise(function (res) {
+      try {
+        var rq = indexedDB.open('sandart-works', 1);
+        rq.onupgradeneeded = function () { var d = rq.result; d.createObjectStore('meta', { keyPath: 'id' }); d.createObjectStore('blob', { keyPath: 'id' }); };
+        rq.onsuccess = function () { res(rq.result); };
+        rq.onerror = function () { res(null); }; rq.onblocked = function () { res(null); };
+      } catch (e) { res(null); }
+    });
+    return dbp;
+  }
+  function req(r) { return new Promise(function (res, rej) { r.onsuccess = function () { res(r.result); }; r.onerror = function () { rej(r.error); }; }); }
+  function byTime(a) { return a.sort(function (x, y) { return y.ts - x.ts; }); }
+  return {
+    persistent: function () { return open().then(function (d) { return !!d; }); },
+    list: function () {
+      return open().then(function (d) {
+        if (!d) return byTime(Object.keys(mem.meta).map(function (k) { return mem.meta[k]; }));
+        return req(d.transaction('meta').objectStore('meta').getAll()).then(byTime);
+      }).catch(function () { return []; });
+    },
+    get: function (id) {
+      return open().then(function (d) {
+        if (!d) return mem.blob[id] || null;
+        return req(d.transaction('blob').objectStore('blob').get(id));
+      }).catch(function () { return null; });
+    },
+    add: function (meta, blob) {
+      return open().then(function (d) {
+        if (!d) { mem.meta[meta.id] = meta; mem.blob[blob.id] = blob; return true; }
+        return new Promise(function (res) {
+          var tx = d.transaction(['meta', 'blob'], 'readwrite');
+          tx.objectStore('meta').put(meta); tx.objectStore('blob').put(blob);
+          tx.oncomplete = function () { res(true); }; tx.onerror = function () { res(false); }; tx.onabort = function () { res(false); };
+        });
+      }).catch(function () { return false; });
+    },
+    rename: function (id, name) {
+      return open().then(function (d) {
+        if (!d) { if (mem.meta[id]) mem.meta[id].name = name; return true; }
+        return req(d.transaction('meta').objectStore('meta').get(id)).then(function (m) {
+          if (!m) return false; m.name = name;
+          return req(d.transaction('meta', 'readwrite').objectStore('meta').put(m)).then(function () { return true; });
+        });
+      }).catch(function () { return false; });
+    },
+    remove: function (id) {
+      return open().then(function (d) {
+        if (!d) { delete mem.meta[id]; delete mem.blob[id]; return true; }
+        return new Promise(function (res) {
+          var tx = d.transaction(['meta', 'blob'], 'readwrite');
+          tx.objectStore('meta').delete(id); tx.objectStore('blob').delete(id);
+          tx.oncomplete = function () { res(true); }; tx.onerror = function () { res(false); };
+        });
+      }).catch(function () { return false; });
+    }
+  };
+})();
+
+function packBuf(buf) {
+  try {
+    if (window.CompressionStream) {
+      var cs = new CompressionStream('deflate'), w = cs.writable.getWriter(); w.write(buf); w.close();
+      return new Response(cs.readable).arrayBuffer().then(function (o) { return { z: 1, buf: o }; }, function () { return { z: 0, buf: buf }; });
+    }
+  } catch (e) { }
+  return Promise.resolve({ z: 0, buf: buf });
+}
+function unpackBuf(rec) {
+  if (!rec.z) return Promise.resolve(rec.buf);
+  var ds = new DecompressionStream('deflate'), w = ds.writable.getWriter(); w.write(rec.buf); w.close();
+  return new Response(ds.readable).arrayBuffer();
+}
+
+function Gallery(p) {
+  var s1 = useState(null), selId = s1[0], setSelId = s1[1];
+  var s2 = useState(null), data = s2[0], setData = s2[1];
+  var s3 = useState(0), fidx = s3[0], setFidx = s3[1];
+  var s4 = useState(null), conf = s4[0], setConf = s4[1];
+  var s5 = useState(''), name = s5[0], setName = s5[1];
+  var s6 = useState(false), busy = s6[0], setBusy = s6[1];
+  var drag = useRef(null), playing = useRef(true);
+  var meta = null;
+  for (var i = 0; i < p.works.length; i++) if (p.works[i].id === selId) meta = p.works[i];
+
+  useEffect(function () {
+    setConf(null); setFidx(0); playing.current = true; setData(null);
+    if (!selId) return undefined;
+    var dead = false;
+    DB.get(selId).then(function (r) { if (!dead) setData(r || null); });
+    return function () { dead = true; };
+  }, [selId]);
+  useEffect(function () { setName(meta ? meta.name : ''); }, [selId]);
+  useEffect(function () {
+    if (!data || !data.frames) return undefined;
+    var t = setInterval(function () { if (playing.current) setFidx(function (k) { return (k + 1) % data.frames.length; }); }, 170);
+    return function () { clearInterval(t); };
+  }, [data]);
+
+  function dDown(e) { playing.current = false; drag.current = { x: e.clientX, i: fidx }; try { e.currentTarget.setPointerCapture(e.pointerId); } catch (x) { } }
+  function dMove(e) {
+    if (!drag.current || !data || !data.frames) return;
+    var n = data.frames.length, d = Math.round((e.clientX - drag.current.x) / 14);
+    setFidx((((drag.current.i - d) % n) + n) % n);
+  }
+  function dUp() { drag.current = null; }
+
+  var canRep = false;
+  for (var q = 0; q < p.works.length; q++) if (p.works[q].id === p.editId) canRep = true;
+  function run(rep) { setBusy(true); p.onSaveCurrent(rep).then(function () { setBusy(false); }); }
+  var full = p.works.length >= MAXW;
+  var head = h('div', { className: 'gal-head' },
+    selId ? h('button', { className: 'btn', type: 'button', onClick: function () { setSelId(null); } }, '← 返回') : null,
+    h('h2', { style: { fontFamily: 'var(--serif)', fontWeight: 300, fontSize: 20, letterSpacing: '0.24em', margin: 0 } }, '作品集'),
+    h('span', { style: { fontFamily: 'var(--mono)', fontSize: 12, color: full ? 'var(--lamp)' : 'var(--dim)' } }, p.works.length + ' / ' + MAXW),
+    h('span', { style: { flex: 1 } }),
+    !selId && canRep ? h('button', { className: 'btn primary', type: 'button', disabled: !p.hasSand || busy, onClick: function () { run(true); } }, '覆蓋原作品') : null,
+    !selId ? h('button', { className: 'btn' + (canRep ? '' : ' primary'), type: 'button', disabled: full || !p.hasSand || busy, onClick: function () { run(false); } }, canRep ? '另存新作' : '存入目前作品') : null,
+    h('button', { className: 'ibtn', type: 'button', 'aria-label': '關閉作品集', onClick: p.onClose }, h(Icon, { n: 'x' })));
+
+  var notes = [];
+  if (canRep && !selId) notes.push(h('p', { key: 'r', className: 'note' }, '罐中的作品是從作品集載入的，可以覆蓋原作品，或另存成新的一件。'));
+  if (full && !selId) notes.push(h('p', { key: 'f', className: 'note', style: { color: 'var(--lamp)' } }, '作品集已滿 30 件。請先點開一件作品並刪除，才能再存入。'));
+  if (!p.persist) notes.push(h('p', { key: 'p', className: 'note' }, '這個瀏覽器目前不允許保存資料，作品只會留到關閉此頁為止。'));
+  if (!selId && !p.hasSand && !full) notes.push(h('p', { key: 'e', className: 'note' }, '罐子裡還沒有沙，倒一些再存入。'));
+
+  var cells = [];
+  p.works.forEach(function (w) {
+    cells.push(h('button', { key: w.id, className: 'work', type: 'button', 'aria-label': '開啟作品 ' + w.name, onClick: function () { setSelId(w.id); } },
+      h('div', { className: 'th' }, h('img', { src: w.thumb, alt: w.name })),
+      h('div', { className: 'plank' }),
+      h('span', { className: 'nm' }, w.name),
+      h('span', { className: 'dt' }, fmtDate(w.ts) + (w.sealed ? ' · 已封蓋' : ''))));
+  });
+  for (var k = p.works.length; k < MAXW; k++) {
+    cells.push(h('div', { key: 'e' + k, className: 'work slot', 'aria-hidden': true }, h('div', { className: 'th' }, h('span', null, '空位')), h('div', { className: 'plank' })));
+  }
+
+  var detail = meta ? h('div', { className: 'detail' },
+    h('div', { className: 'turn', role: 'img', 'aria-label': '可左右拖曳旋轉的作品預覽', onPointerDown: dDown, onPointerMove: dMove, onPointerUp: dUp, onPointerCancel: dUp },
+      h('img', { src: data && data.frames ? data.frames[fidx % data.frames.length] : meta.thumb, alt: meta.name, draggable: false })),
+    h('p', { className: 'note', style: { margin: 0 } }, '左右拖曳旋轉預覽'),
+    h('input', { id: 'work-name', type: 'text', value: name, maxLength: 24, 'aria-label': '作品名稱', style: { maxWidth: 320, textAlign: 'center' }, onChange: function (e) { setName(e.target.value); }, onBlur: function () { var n = name.trim(); if (n && n !== meta.name) p.onRename(meta.id, n); } }),
+    h('p', { className: 'note', style: { margin: 0 } }, fmtDate(meta.ts) + ' · 完成度 ' + Math.floor(meta.pct * 100) + '%' + (meta.sealed ? ' · 已封蓋' : '')),
+    h('div', { className: 'row', style: { flexWrap: 'wrap', justifyContent: 'center' } },
+      h('button', { className: 'btn primary', type: 'button', disabled: !data, onClick: function () { if (p.hasSand && conf !== 'load') setConf('load'); else p.onLoad(meta.id, false); } }, conf === 'load' ? '會取代目前的沙，再按一次載入' : '載入到罐中'),
+      meta.sealed ? h('button', { className: 'btn', type: 'button', disabled: !data, onClick: function () { if (p.hasSand && conf !== 'open') setConf('open'); else p.onLoad(meta.id, true); } }, conf === 'open' ? '會取代目前的沙，再按一次' : '載入並開蓋調整') : null,
+      h('button', { className: 'btn', type: 'button', onClick: function () { if (conf !== 'del') setConf('del'); else p.onDelete(meta.id).then(function () { setSelId(null); }); } }, conf === 'del' ? '再按一次確認刪除' : '刪除'))) : null;
+
+  return h('div', { className: 'gal', role: 'dialog', 'aria-label': '作品集' },
+    h('div', { className: 'gutter', style: { maxWidth: 1000, margin: '0 auto' } }, head, notes, selId && meta ? detail : h('div', { className: 'gal-grid' }, cells)));
+}
+
+function App() {
+  var cv = useRef(null), eng = useRef(null), toastT = useRef(0);
+  var s1 = useState('pour'), mode = s1[0], setMode = s1[1];
+  var s2 = useState('#d9b98a'), color = s2[0], setColor = s2[1];
+  var s3 = useState(0), grp = s3[0], setGrp = s3[1];
+  var s4 = useState(false), grad = s4[0], setGrad = s4[1];
+  var s5 = useState('glitter'), mat = s5[0], setMat = s5[1];
+  var s6 = useState(0.15), flow = s6[0], setFlow = s6[1];
+  var s7 = useState(0.08), spread = s7[0], setSpread = s7[1];
+  var s8 = useState(false), panel = s8[0], setPanel = s8[1];
+  var s9 = useState(false), hidden = s9[0], setHidden = s9[1];
+  var s10 = useState(false), zen = s10[0], setZen = s10[1];
+  var s11 = useState(false), muted = s11[0], setMuted = s11[1];
+  var s12 = useState(true), sandSnd = s12[0], setSandSnd = s12[1];
+  var s13 = useState(false), amb = s13[0], setAmb = s13[1];
+  var s14 = useState('bowl'), ambMode = s14[0], setAmbMode = s14[1];
+  var s15 = useState(0.6), vol = s15[0], setVol = s15[1];
+  var s16 = useState(loadSaved), saved = s16[0], setSaved = s16[1];
+  var s17 = useState(false), edit = s17[0], setEdit = s17[1];
+  var s18 = useState(0), undoN = s18[0], setUndoN = s18[1];
+  var s19 = useState(null), shot = s19[0], setShot = s19[1];
+  var s20 = useState(''), toast = s20[0], setToast = s20[1];
+  var s21 = useState(''), err = s21[0], setErr = s21[1];
+  var s22 = useState(color), hexIn = s22[0], setHexIn = s22[1];
+  var s23 = useState(true), hintOn = s23[0], setHintOn = s23[1];
+  var s24 = useState('fine'), nozzle = s24[0], setNozzle = s24[1];
+  var s25 = useState(0.4), tsize = s25[0], setTsize = s25[1];
+  var s26 = useState(0.5), tdepth = s26[0], setTdepth = s26[1];
+  var s27 = useState(0), pct = s27[0], setPct = s27[1];
+  var s28 = useState(false), done = s28[0], setDone = s28[1];
+  var s29 = useState(false), sealed = s29[0], setSealed = s29[1];
+  var s30 = useState(false), cardOn = s30[0], setCardOn = s30[1];
+  var s31 = useState(null), savedId = s31[0], setSavedId = s31[1];
+  var s32 = useState(false), galOpen = s32[0], setGalOpen = s32[1];
+  var s33 = useState([]), works = s33[0], setWorks = s33[1];
+  var s34 = useState(true), persist = s34[0], setPersist = s34[1];
+  var s35 = useState(''), sealName = s35[0], setSealName = s35[1];
+  var s36 = useState(0), sealTs = s36[0], setSealTs = s36[1];
+  var s37 = useState(null), editId = s37[0], setEditId = s37[1];
+  var s38 = useState(true), musicOn = s38[0], setMusicOn = s38[1];
+  var s39 = useState(true), mPad = s39[0], setMPad = s39[1];
+  var s41 = useState(true), mPiano = s41[0], setMPiano = s41[1];
+  var s42 = useState(false), mBox = s42[0], setMBox = s42[1];
+  var s40 = useState(0.5), mvol = s40[0], setMvol = s40[1];
+  var sealedRef = useRef(false), saveBusy = useRef(false);
+
+  var say = useCallback(function (m) { setToast(m); clearTimeout(toastT.current); toastT.current = setTimeout(function () { setToast(''); }, 2800); }, []);
+
+  useEffect(function () {
+    var e;
+    try {
+      e = createEngine(cv.current, {
+        onUndo: setUndoN,
+        onFull: function (p) { say(p >= 0.97 ? '已經幾乎填滿了' : '這個位置的沙已堆到罐口，換個位置繼續'); },
+        onGesture: function () { Snd.ensure(); },
+        onProgress: function (p, d) { setPct(p); setDone(d); },
+        onComplete: function () { say('已鋪滿到罐口 100%，可以封蓋保存了'); },
+        onSealed: function () { setCardOn(true); Snd.finale(); },
+        onBlocked: function () { say(sealedRef.current ? '已封蓋，開蓋後才能繼續創作' : '已填滿 100%，請封蓋保存，或用針與壓棒整理'); }
+      });
+    }
+    catch (x) { setErr(String((x && x.message) || x)); return; }
+    eng.current = e;
+    var t = setTimeout(function () { setHintOn(false); }, 8500);
+    return function () { clearTimeout(t); e.dispose(); eng.current = null; };
+  }, []);
+
+  useEffect(function () { var e = eng.current; if (!e) return; if (grad) e.setGradient(PAL[grp].colors.map(function (c) { return c[1]; })); else e.setColor(color); }, [color, grad, grp]);
+  useEffect(function () { eng.current && eng.current.setMaterial(mat); }, [mat]);
+  useEffect(function () { eng.current && eng.current.setFlow(flow); }, [flow]);
+  useEffect(function () { eng.current && eng.current.setSpread(spread); }, [spread]);
+  useEffect(function () { eng.current && eng.current.setMode(mode); }, [mode]);
+  useEffect(function () { eng.current && eng.current.setToolSize(tsize); }, [tsize]);
+  useEffect(function () { eng.current && eng.current.setToolDepth(tdepth); }, [tdepth]);
+  useEffect(function () { setHintOn(true); var t = setTimeout(function () { setHintOn(false); }, 6500); return function () { clearTimeout(t); }; }, [mode]);
+  useEffect(function () { eng.current && eng.current.setZen(zen); }, [zen]);
+  useEffect(function () { Snd.set({ vol: vol, muted: muted, sandOn: sandSnd, ambOn: amb, ambMode: ambMode, musicOn: musicOn, mPad: mPad, mPiano: mPiano, mBox: mBox, musicVol: mvol, zen: zen }); }, [vol, muted, sandSnd, amb, ambMode, musicOn, mPad, mPiano, mBox, mvol, zen]);
+  useEffect(function () {
+    var on = function () { Snd.ensure(); };
+    window.addEventListener('pointerdown', on, { once: false });
+    return function () { window.removeEventListener('pointerdown', on); };
+  }, []);
+  useEffect(function () {
+    function key(e) {
+      if (e.target && e.target.tagName === 'INPUT') return;
+      if (e.key === 'h' || e.key === 'H') setHidden(function (v) { return !v; });
+      else if (e.key === 'z' || e.key === 'Z') { if (e.ctrlKey || e.metaKey) { eng.current && eng.current.undo(); } else setZen(function (v) { return !v; }); }
+      else if (e.key === 'Escape') { setShot(null); setPanel(false); setGalOpen(false); }
+    }
+    window.addEventListener('keydown', key); return function () { window.removeEventListener('keydown', key); };
+  }, []);
+
+  function refreshWorks() { return DB.list().then(setWorks); }
+  useEffect(function () { refreshWorks(); DB.persistent().then(setPersist); }, []);
+  function doSeal() {
+    var e = eng.current; if (!e || sealed) return;
+    e.seal(); sealedRef.current = true; setSealed(true); setCardOn(false); setPanel(false); setSavedId(null);
+    var now = Date.now(), em = findWork(editId); setSealTs(now); setSealName(em ? em.name : defaultName(now));
+  }
+  function reopen() { var e = eng.current; if (e) e.unseal(); sealedRef.current = false; setSealed(false); setCardOn(false); setSavedId(null); }
+  function newJar() { var e = eng.current; if (!e) return; e.unseal(); sealedRef.current = false; setSealed(false); setCardOn(false); setSavedId(null); setEditId(null); e.clear(); }
+  function findWork(id) { for (var i = 0; i < works.length; i++) if (works[i].id === id) return works[i]; return null; }
+  function saveWork(name, replaceId) {
+    var e = eng.current;
+    if (!e || saveBusy.current) return Promise.resolve(null);
+    if (!replaceId && works.length >= MAXW) { say('作品集已滿 30 件，請先刪除一件'); return Promise.resolve(null); }
+    saveBusy.current = true;
+    return new Promise(function (resolve) { setTimeout(resolve, 30); }).then(function () {
+      var frames = e.capture(12, 360, 480, 0.76), st = e.exportState();
+      return packBuf(st.buf).then(function (pk) {
+        var id = replaceId || ('w' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6));
+        var meta = { id: id, name: (name || '').trim() || defaultName(), ts: Date.now(), pct: st.pct, sealed: st.sealed, thumb: frames[0] };
+        return DB.add(meta, { id: id, frames: frames, z: pk.z, buf: pk.buf }).then(function (ok) {
+          if (!ok) { say('無法保存：瀏覽器的儲存空間不足或被停用'); return null; }
+          return refreshWorks().then(function () { say('已存入作品集'); return id; });
+        });
+      });
+    }).catch(function () { say('存入失敗，請再試一次'); return null; }).then(function (id) { saveBusy.current = false; return id; });
+  }
+  function saveFromCard(rep) {
+    var em = rep ? findWork(editId) : null;
+    return saveWork(sealName, em ? em.id : null).then(function (id) { if (id) { setSavedId(id); setEditId(id); } });
+  }
+  function saveFromGallery(rep) {
+    var em = rep ? findWork(editId) : null, nm = em ? em.name : (sealed ? sealName : defaultName());
+    return saveWork(nm, em ? em.id : null).then(function (id) { if (id) { setEditId(id); if (sealedRef.current) setSavedId(id); } return id; });
+  }
+  function loadWork(id, open) {
+    var m = null; for (var i = 0; i < works.length; i++) if (works[i].id === id) m = works[i];
+    return DB.get(id).then(function (r) {
+      if (!r) { say('讀取作品失敗'); return null; }
+      return unpackBuf(r).then(function (buf) {
+        var wasSealed = !!(m && m.sealed);
+        if (!eng.current || !eng.current.importState(buf, wasSealed)) { say('這件作品的資料無法還原'); return; }
+        var keepSealed = wasSealed && !open;
+        if (wasSealed && open) eng.current.unseal();
+        sealedRef.current = keepSealed; setSealed(keepSealed); setCardOn(keepSealed); setSavedId(keepSealed ? id : null); setEditId(id);
+        if (m) { setSealTs(m.ts); setSealName(m.name); }
+        setGalOpen(false); say('已載入作品');
+      });
+    }).catch(function () { say('這件作品的資料無法還原'); });
+  }
+  function deleteWork(id) { return DB.remove(id).then(refreshWorks).then(function () { if (id === savedId) setSavedId(null); if (id === editId) setEditId(null); say('已刪除'); }); }
+  function renameWork(id, name) { return DB.rename(id, name).then(refreshWorks); }
+  function setNoz(k) {
+    setNozzle(k);
+    if (k === 'fine') { setFlow(0.15); setSpread(0.08); } else { setFlow(1); setSpread(0.6); }
+  }
+  function pick(hex) { setGrad(false); setColor(hex); setHexIn(hex); }
+  function onHex(v) { setHexIn(v); var n = normHex(v); if (n) { setGrad(false); setColor(n); } }
+  function onRgb(ch, v) {
+    var c = hexToRgb(color); c[ch] = v; var hx = rgbToHex(c.r, c.g, c.b); setGrad(false); setColor(hx); setHexIn(hx);
+  }
+  function saveColor() {
+    var hx = normHex(color); if (!hx) return;
+    if (saved.indexOf(hx) >= 0) { say('這個顏色已在個人特調裡'); return; }
+    var next = [hx].concat(saved).slice(0, 24); setSaved(next); storeSaved(next); say('已存入個人特調');
+  }
+  function delSaved(hx) { var next = saved.filter(function (c) { return c !== hx; }); setSaved(next); storeSaved(next); }
+  function snap() {
+    if (!eng.current) return; say('正在生成高解析度圖片…');
+    Promise.resolve(eng.current.snapshot()).then(function (r) { setShot(r); setToast(''); }).catch(function () { say('快照失敗，請再試一次'); });
+  }
+  function copyShot() {
+    if (!shot) return;
+    try {
+      navigator.clipboard.write([new ClipboardItem({ 'image/png': shot.blob })]).then(function () { say('已複製圖片'); }, function () { say('無法複製，請長按或按右鍵另存圖片'); });
+    } catch (e) { say('無法複製，請長按或按右鍵另存圖片'); }
+  }
+
+  var rgb = hexToRgb(color), editMeta = findWork(editId);
+  var ibtn = function (icon, label, on, fn) { return h('button', { className: 'ibtn', type: 'button', 'aria-label': label, title: label, 'aria-pressed': on, onClick: fn }, h(Icon, { n: icon })); };
+  var dbtn = function (icon, label, fn, opts) { opts = opts || {}; return h('button', { className: 'dockbtn', type: 'button', disabled: opts.disabled, 'aria-pressed': opts.pressed, 'aria-label': label, onClick: fn }, h(Icon, { n: icon, size: 21 }), h('span', null, label)); };
+
+  var ui = null;
+  if (!hidden) {
+    var drawer = panel ? h('aside', { className: 'drawer glass', 'aria-label': '色彩、沙質與聲音設定' },
+      h('section', null,
+        h('h2', null, '色彩'),
+        h('div', { className: 'flex flex-wrap gap-1.5', style: { marginBottom: 12 } },
+          PAL.map(function (g, i) { return h('button', { key: g.name, className: 'chip', type: 'button', 'aria-pressed': grp === i, onClick: function () { setGrp(i); } }, g.name); })),
+        h('div', { className: 'grid grid-cols-6 gap-x-2 gap-y-3' },
+          PAL[grp].colors.map(function (c) {
+            return h('button', { key: c[1], className: 'swatch', type: 'button', 'aria-pressed': !grad && color === c[1], title: c[0] + ' ' + c[1], onClick: function () { pick(c[1]); } }, h('i', { style: { background: c[1] } }), h('span', null, c[0]));
+          })),
+        h('div', { style: { marginTop: 8 } }, h(Toggle, { label: '沿「' + PAL[grp].name + '」色板自動漸變', on: grad, onClick: function () { setGrad(!grad); } })),
+        h('div', { style: { marginTop: 12 } },
+          h('div', { className: 'lbl' }, h('span', null, '自訂調色'), h('b', null, color.toUpperCase())),
+          h('div', { className: 'row' },
+            h('input', { id: 'native-color', type: 'color', value: color, 'aria-label': '色彩選擇器', onChange: function (e) { pick(e.target.value); } }),
+            h('input', { id: 'hex-input', type: 'text', value: hexIn, spellCheck: false, maxLength: 7, 'aria-label': 'HEX 色碼', onChange: function (e) { onHex(e.target.value); } }),
+            h('button', { className: 'btn', type: 'button', onClick: saveColor, 'aria-label': '存入個人特調色盤' }, h(Icon, { n: 'plus', size: 16 }), '存入')),
+          ['r', 'g', 'b'].map(function (ch) {
+            return h('div', { key: ch, className: 'row', style: { marginTop: 4 } },
+              h('span', { style: { width: 14, color: 'var(--dim)', fontFamily: 'var(--mono)', fontSize: 11 } }, ch.toUpperCase()),
+              h('input', { id: 'rgb-' + ch, type: 'range', min: 0, max: 255, step: 1, value: rgb[ch], 'aria-label': ch.toUpperCase() + ' 通道', onChange: function (e) { onRgb(ch, parseInt(e.target.value, 10)); } }),
+              h('span', { style: { width: 28, textAlign: 'right', fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--dim)' } }, rgb[ch]));
+          })),
+        h('div', { style: { marginTop: 14 } },
+          h('div', { className: 'lbl' }, h('span', null, '個人特調（' + saved.length + '）'),
+            saved.length ? h('button', { className: 'chip', type: 'button', 'aria-pressed': edit, onClick: function () { setEdit(!edit); } }, edit ? '完成' : '編輯') : null),
+          saved.length ? h('div', { className: 'grid grid-cols-8 gap-x-2 gap-y-3', style: { paddingTop: 4 } },
+            saved.map(function (c) {
+              return h('div', { key: c, style: { position: 'relative' } },
+                h('button', { className: 'swatch', type: 'button', 'aria-pressed': !grad && color === c, title: c.toUpperCase(), onClick: function () { pick(c); }, style: { width: '100%' } }, h('i', { style: { background: c } })),
+                edit ? h('button', { className: 'swatch del', type: 'button', 'aria-label': '刪除 ' + c, onClick: function () { delSaved(c); } }, h(Icon, { n: 'x', size: 11 })) : null);
+            })) : h('p', { style: { margin: 0, fontSize: 12, color: 'var(--dim)' } }, '調好顏色後按「存入」，會留在這個瀏覽器裡。'))),
+      h('section', null,
+        h('h2', null, '漏斗落沙'),
+        h('div', { className: 'flex flex-wrap gap-1.5' },
+          [['fine', '細流 · 精細圖案'], ['coarse', '粗流 · 快速鋪底']].map(function (m) {
+            return h('button', { key: m[0], className: 'chip', type: 'button', 'aria-pressed': nozzle === m[0], onClick: function () { setNoz(m[0]); } }, m[1]);
+          })),
+        h(Slider, { id: 'flow', label: '流速', value: flow, text: Math.round(flow * 100) + '%', onChange: function (v) { setFlow(v); setNozzle('custom'); } }),
+        h(Slider, { id: 'spread', label: '漏斗口徑', value: spread, text: (0.03 * Math.pow(1.4 / 0.03, spread)).toFixed(2), onChange: function (v) { setSpread(v); setNozzle('custom'); } }),
+        h('p', { style: { margin: '8px 0 0', fontSize: 11.5, color: 'var(--dim)', lineHeight: 1.6 } }, '先把漏斗移到想要的位置，沙面上的圓圈就是落點。口徑大會把沙鋪成平整的一層，口徑小則堆成沙丘。')),
+      h('section', null,
+        h('h2', null, '塑形針與壓棒'),
+        h(Slider, { id: 'tsize', label: '工具大小', value: tsize, text: (1.3 + tsize * 5.2).toFixed(1) + ' 格', onChange: setTsize }),
+        h(Slider, { id: 'tdepth', label: '針深 / 紋路深度', value: tdepth, text: Math.round(tdepth * 100) + '%', onChange: setTdepth }),
+        h('p', { style: { margin: '8px 0 0', fontSize: 11.5, color: 'var(--dim)', lineHeight: 1.6 } }, '挑起：細針插入沙層拖曳，把下層沙色帶到上層。波浪：挑起量隨距離起伏。壓實：按住壓下，沙變密並鎖定，傾斜時不會流動。紋理：輕劃沙面，留下漣漪紋路。靠近玻璃壁操作，側面最容易看到挑起的層次。')),
+      h('section', null,
+        h('h2', null, '沙質'),
+        h('div', { className: 'flex flex-wrap gap-1.5' },
+          [['glitter', '細緻微光粒'], ['matte', '霧面礦物沙'], ['metal', '微金屬光澤']].map(function (m) {
+            return h('button', { key: m[0], className: 'chip', type: 'button', 'aria-pressed': mat === m[0], onClick: function () { setMat(m[0]); } }, m[1]);
+          }))),
+      h('section', null,
+        h('h2', null, '聲音'),
+        h(Toggle, { label: '落沙 ASMR', on: sandSnd, onClick: function () { setSandSnd(!sandSnd); } }),
+        h(Toggle, { label: '環境冥想音', on: amb, onClick: function () { setAmb(!amb); } }),
+        amb ? h('div', { className: 'flex flex-wrap gap-1.5', style: { margin: '4px 0 6px' } },
+          [['bowl', '頌缽'], ['noise', '白噪音'], ['both', '兩者']].map(function (m) {
+            return h('button', { key: m[0], className: 'chip', type: 'button', 'aria-pressed': ambMode === m[0], onClick: function () { setAmbMode(m[0]); } }, m[1]);
+          })) : null,
+        h(Toggle, { label: '輕鬆冥想音樂', on: musicOn, onClick: function () { Snd.ensure(); setMusicOn(!musicOn); } }),
+        musicOn ? h('div', { className: 'flex flex-wrap gap-1.5', style: { margin: '4px 0 6px' }, role: 'group', 'aria-label': '音樂聲部' },
+          [['和弦鋪底', mPad, setMPad], ['鋼琴琶音', mPiano, setMPiano], ['樂盒', mBox, setMBox]].map(function (m) {
+            return h('button', { key: m[0], className: 'chip', type: 'button', 'aria-pressed': m[1], onClick: function () { m[2](!m[1]); } }, m[0]);
+          })) : null,
+        musicOn ? h(Slider, { id: 'mvol', label: '音樂音量', value: mvol, text: Math.round(mvol * 100) + '%', onChange: setMvol }) : null,
+        h(Slider, { id: 'vol', label: '總音量', value: vol, text: Math.round(vol * 100) + '%', onChange: setVol }))
+    ) : null;
+
+    ui = h('div', null,
+      h('header', { className: 'layer ui-top gutter flex items-start justify-between gap-3' },
+        h('div', { className: 'brand', style: { pointerEvents: 'none' } }, h('h1', null, '立體沙畫'), h('p', null, '一層一層，慢慢來')),
+        h('div', { className: 'prog' + (pct >= 1 ? ' done' : ''), role: 'progressbar', 'aria-label': '完成度', 'aria-valuemin': 0, 'aria-valuemax': 100, 'aria-valuenow': Math.floor(pct * 100) },
+          h('svg', { width: 48, height: 48, viewBox: '0 0 48 48', 'aria-hidden': true },
+            h('circle', { cx: 24, cy: 24, r: 20, fill: 'none', stroke: 'rgba(255,232,200,0.16)', strokeWidth: 2.5 }),
+            h('circle', { className: 'v', cx: 24, cy: 24, r: 20, fill: 'none', stroke: 'currentColor', strokeWidth: 2.5, strokeLinecap: 'round', strokeDasharray: 125.66, strokeDashoffset: 125.66 * (1 - Math.min(1, pct)), transform: 'rotate(-90 24 24)' })),
+          h('span', null, Math.floor(pct * 100) + '%')),
+        h('div', { className: 'glass flex gap-1 p-1' },
+          ibtn('sparkles', 'Zen 展示模式（Z）', zen, function () { setZen(!zen); }),
+          ibtn(muted ? 'mute' : 'vol', muted ? '開啟聲音' : '全部靜音', muted, function () { Snd.ensure(); setMuted(!muted); }),
+          ibtn('eyeoff', '隱藏介面（H）', false, function () { setHidden(true); setPanel(false); }))),
+      h('div', { className: 'layer', style: { top: 0, bottom: 0 } }, drawer),
+      done && !sealed ? h('button', { className: 'cap', type: 'button', onClick: doSeal }, h(Icon, { n: 'lid', size: 18 }), '封蓋保存') : null,
+      cardOn && sealed ? h('div', { className: 'sealcard glass', role: 'group', 'aria-label': '封蓋完成' },
+        h('div', { className: 'lbl' }, h('span', null, '已封蓋'), h('b', null, fmtDate(sealTs))),
+        savedId ? h('div', null,
+          h('p', { style: { margin: '2px 0 10px', fontSize: 13 } }, '已存入作品集（' + works.length + ' / ' + MAXW + '）'),
+          h('div', { className: 'row', style: { flexWrap: 'wrap' } },
+            h('button', { className: 'btn', type: 'button', onClick: function () { setGalOpen(true); } }, '查看作品集'),
+            h('button', { className: 'btn', type: 'button', onClick: reopen }, '開蓋調整'),
+            h('button', { className: 'btn primary', type: 'button', onClick: newJar }, '開新一罐')))
+        : h('div', null,
+          editMeta ? h('p', { className: 'note', style: { margin: '0 0 6px' } }, '調整自「' + editMeta.name + '」') : null,
+          h('input', { id: 'seal-name', type: 'text', value: sealName, maxLength: 24, 'aria-label': '作品名稱', onChange: function (e) { setSealName(e.target.value); } }),
+          works.length >= MAXW ? h('p', { className: 'note', style: { color: 'var(--lamp)' } }, '作品集已滿 30 件，請先刪除一件才能存入。') : null,
+          h('div', { className: 'row', style: { flexWrap: 'wrap', marginTop: 10 } },
+            editMeta ? h('button', { className: 'btn primary', type: 'button', onClick: function () { saveFromCard(true); } }, '覆蓋原作品') : null,
+            works.length >= MAXW
+              ? h('button', { className: 'btn' + (editMeta ? '' : ' primary'), type: 'button', onClick: function () { setGalOpen(true); } }, '開啟作品集整理')
+              : h('button', { className: 'btn' + (editMeta ? '' : ' primary'), type: 'button', onClick: function () { saveFromCard(false); } }, editMeta ? '另存新作' : '存入作品集'),
+            h('button', { className: 'btn', type: 'button', onClick: reopen }, '開蓋繼續')))) : null,
+      hintOn && !toast && !sealed ? h('p', { key: mode, className: 'hint' }, HINTS[mode]) : null,
+      toast ? h('p', { className: 'toast', role: 'status' }, toast) : null,
+      h('nav', { className: 'layer ui-dock gutter', 'aria-label': '工具列' },
+        h('div', { className: 'glass flex items-stretch gap-1 p-1.5', role: 'toolbar', 'aria-label': '沙畫工具' },
+          TOOLS.map(function (t) {
+            return h('button', { key: t[0], className: 'dockbtn', type: 'button', disabled: sealed && t[0] !== 'rotate', 'aria-pressed': mode === t[0], 'aria-label': t[2], onClick: function () { setMode(t[0]); } }, h(Icon, { n: t[1], size: 21 }), h('span', null, t[2]));
+          })),
+        h('div', { className: 'glass flex items-stretch gap-1 p-1.5' },
+          dbtn('undo', '復原', function () { eng.current && eng.current.undo(); }, { disabled: undoN === 0 || sealed }),
+          dbtn('tilt', '傾斜', function () { eng.current && eng.current.tilt(); }, { disabled: sealed }),
+          dbtn('trash', '清空', function () { eng.current && eng.current.clear(); }, { disabled: sealed }),
+          dbtn('gallery', '作品', function () { setGalOpen(true); setPanel(false); }),
+          h('button', { className: 'dockbtn', type: 'button', 'aria-expanded': panel, 'aria-pressed': panel, 'aria-label': '開啟調色與設定', onClick: function () { setPanel(!panel); } },
+            h('span', { className: 'sw', style: { background: grad ? 'conic-gradient(' + PAL[grp].colors.map(function (c) { return c[1]; }).join(',') + ')' : color } }), h('span', null, '調色'))))
+    );
+  }
+
+  return h('div', null,
+    h('canvas', { ref: cv, className: 'stage', 'aria-label': '立體沙畫畫布' }),
+    err ? h('div', { className: 'errbox' }, h('div', null, h('p', { style: { fontFamily: 'var(--serif)', fontSize: 18, color: 'var(--paper)' } }, '無法啟動 3D 畫面'), h('p', null, '這個瀏覽器可能不支援 WebGL。請改用較新的 Chrome、Safari 或 Edge。'), h('p', { style: { fontFamily: 'var(--mono)', fontSize: 11 } }, err))) : null,
+    ui,
+    hidden ? h('button', { className: 'ibtn reveal', type: 'button', 'aria-label': '顯示介面（H）', title: '顯示介面（H）', onClick: function () { setHidden(false); } }, h(Icon, { n: 'eye' })) : null,
+    galOpen ? h(Gallery, { works: works, persist: persist, hasSand: pct > 0.003 && !(sealed && savedId), onClose: function () { setGalOpen(false); }, editId: editId, onSaveCurrent: saveFromGallery, onLoad: loadWork, onDelete: deleteWork, onRename: renameWork }) : null,
+    shot ? h('div', { className: 'modal', role: 'dialog', 'aria-label': '快照預覽', onClick: function (e) { if (e.target === e.currentTarget) setShot(null); } },
+      h('div', { className: 'card' },
+        h('img', { src: shot.url, alt: '立體沙畫快照，' + shot.w + '×' + shot.h }),
+        h('p', null, shot.w + ' × ' + shot.h + ' PNG · 電腦請在圖片上按右鍵「另存圖片」，手機請長按圖片儲存'),
+        h('div', { className: 'row' },
+          h('button', { className: 'btn primary', type: 'button', onClick: copyShot }, '複製圖片'),
+          h('button', { className: 'btn', type: 'button', onClick: function () { setShot(null); } }, '關閉')))) : null
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+})();
+</script>
+
+</body></html>
